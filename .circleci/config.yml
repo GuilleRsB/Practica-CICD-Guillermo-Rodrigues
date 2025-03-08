@@ -74,12 +74,12 @@ jobs:
           command: |
             wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
             unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-            export PATH=$PATH:$(pwd)/sonar-scanner-cli-4.8.0.2856-linux/bin
-            sonar-scanner \
+            ./sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
               -Dsonar.projectKey=dias-vividos-cli \
               -Dsonar.sources=. \
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_LOGIN
+
       # Nota: Configura las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
 
   # Job: Generar y publicar el artefacto (imagen Docker) (solo en master/main)
