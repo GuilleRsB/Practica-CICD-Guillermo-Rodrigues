@@ -1,7 +1,7 @@
 version: 2.1
 
 jobs:
-  # Job para la construcción de la imagen Docker
+  # Job: Construcción de la imagen Docker
   build:
     docker:
       - image: circleci/python:3.8
@@ -18,7 +18,7 @@ jobs:
           paths:
             - .
 
-  # Job para ejecutar pruebas y generar reporte de cobertura
+  # Job: Ejecutar pruebas y generar reporte de cobertura
   test:
     docker:
       - image: circleci/python:3.8
@@ -36,7 +36,7 @@ jobs:
           path: coverage.xml
           destination: coverage
 
-  # Job para ejecutar linting con Flake8
+  # Job: Linting con Flake8
   lint:
     docker:
       - image: circleci/python:3.8
@@ -49,7 +49,7 @@ jobs:
           name: Ejecutar linting
           command: flake8 .
 
-  # Job para análisis estático de código con Bandit
+  # Job: Análisis estático con Bandit
   static_analysis:
     docker:
       - image: circleci/python:3.8
@@ -62,20 +62,26 @@ jobs:
           name: Ejecutar análisis estático
           command: bandit -r .
 
-  # Job para análisis de vulnerabilidades con Snyk
-  snyk_scan:
+  # Job: Análisis de código y vulnerabilidades con SonarQube
+  sonar_scan:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/openjdk:11  # Imagen con Java, necesaria para sonar-scanner
     steps:
       - checkout
       - run:
-          name: Instalar Snyk
-          command: pip install snyk
-      - run:
-          name: Ejecutar análisis de vulnerabilidades
-          command: snyk test
+          name: Descargar e instalar SonarScanner
+          command: |
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+            unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+            export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
+            sonar-scanner \
+              -Dsonar.projectKey=dias-vividos-cli \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.login=$SONAR_LOGIN
+      # Nota: Configura las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
 
-  # Job para generar el artefacto de la aplicación (solo en master/main)
+  # Job: Generar el artefacto (imagen Docker) (solo en master/main)
   artifact:
     docker:
       - image: circleci/python:3.8
@@ -90,17 +96,29 @@ jobs:
           path: dias-vividos-cli.tar
           destination: artifact
 
-  # Job para desplegar en Kubernetes usando ArgoCD (solo en master/main)
+  # Job: Despliegue en Kubernetes usando kind y ArgoCD (solo en master/main)
   deploy:
-    docker:
-      - image: circleci/python:3.8
+    machine: true  # Se usa el executor "machine" para tener mayor control (necesario para kind)
     steps:
       - checkout
       - run:
+          name: Instalar kind
+          command: |
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+            chmod +x ./kind
+            sudo mv ./kind /usr/local/bin/kind
+      - run:
+          name: Crear clúster kind
+          command: kind create cluster --name dias-vividos-cluster
+      - run:
           name: Desplegar en Kubernetes vía ArgoCD
           command: |
-            # Se asume que las credenciales y el CLI de ArgoCD están configurados
+            # Se asume que la CLI de ArgoCD ya está instalada en el entorno
+            # y que la aplicación "dias-vividos-cli" está previamente configurada en ArgoCD.
             argocd app sync dias-vividos-cli --grpc-web
+      - run:
+          name: Eliminar clúster kind (opcional)
+          command: kind delete cluster --name dias-vividos-cluster
 
 workflows:
   version: 2
@@ -116,7 +134,7 @@ workflows:
       - static_analysis:
           requires:
             - build
-      - snyk_scan:
+      - sonar_scan:
           requires:
             - build
       - artifact:
@@ -127,7 +145,7 @@ workflows:
             - test
             - lint
             - static_analysis
-            - snyk_scan
+            - sonar_scan
       - deploy:
           filters:
             branches:
