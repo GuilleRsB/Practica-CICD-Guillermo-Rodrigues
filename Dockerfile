@@ -1,15 +1,15 @@
-# Selecciona una imagen oficial de Python
+# Utiliza una imagen oficial de Python
 FROM python:3.8-slim
 
-# Establece el directorio de trabajo en el contenedor
+# Establece el directorio de trabajo
 WORKDIR /app
 
-# Copia el archivo de dependencias y las instala
+# Copia el archivo de dependencias e instala
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia todo el contenido del repositorio en el contenedor
+# Copia el resto del código
 COPY . .
 
-# Define el comando que se ejecutará al iniciar el contenedor
+# Comando para ejecutar la aplicación
 CMD ["python", "app.py"]

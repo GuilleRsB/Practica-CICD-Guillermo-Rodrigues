@@ -2,6 +2,5 @@ import pytest
 from app import dias_vividos
 
 def test_dias_vividos():
-    # Con 10 años se espera 3650 días (10 * 365)
-    resultado = dias_vividos(10)
-    assert resultado == 3650, f"Se esperaba 3650 pero se obtuvo {resultado}"
+    # Para 10 años se espera 3650 días (10 * 365)
+    assert dias_vividos(10) == 3650, "Error: 10 años deberían dar 3650 días."
