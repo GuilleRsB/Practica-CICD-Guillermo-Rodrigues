@@ -74,7 +74,7 @@ jobs:
           command: |
             wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
             unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-            export PATH=$PATH:$(pwd)/sonar-scanner-4.8.0.2856-linux/bin
+            export PATH=$PATH:$(pwd)/sonar-scanner-cli-4.8.0.2856-linux/bin
             sonar-scanner \
               -Dsonar.projectKey=dias-vividos-cli \
               -Dsonar.sources=. \
@@ -82,7 +82,7 @@ jobs:
               -Dsonar.login=$SONAR_LOGIN
       # Nota: Configura las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
 
-  # Job: Generar el artefacto (imagen Docker) (solo en master/main)
+  # Job: Generar y publicar el artefacto (imagen Docker) (solo en master/main)
   artifact:
     docker:
       - image: circleci/python:3.8
@@ -90,12 +90,74 @@ jobs:
       - checkout
       - setup_remote_docker   # Necesario para ejecutar comandos Docker
       - run:
-          name: Generar artefacto (imagen Docker)
+          name: Generar y publicar artefacto (imagen Docker)
           command: |
+            # Construir la imagen Docker
             docker build -t dias-vividos-cli .
+            # Autenticarse en Docker Hub usando variables de entorno configuradas (DOCKERHUB_USERNAME y DOCKERHUB_PASSWORD)
+            docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+            # Etiquetar la imagen para Docker Hub
+            docker tag dias-vividos-cli $DOCKERHUB_USERNAME/dias-vividos-cli:latest
+            # Publicar la imagen a Docker Hub
+            docker push $DOCKERHUB_USERNAME/dias-vividos-cli:latest
+            # Guardar la imagen en un archivo tar como artefacto
             docker save dias-vividos-cli > dias-vividos-cli.tar
       - store_artifacts:
           path: dias-vividos-cli.tar
           destination: artifact
 
-  # Job: Despliegue en Kubernetes usando kind y ArgoCD (solo en
+  # Job: Despliegue en Kubernetes usando kind y ArgoCD (solo en master/main)
+  deploy:
+    machine: true  # Se utiliza "machine" para tener acceso nativo a Docker (necesario para kind)
+    steps:
+      - checkout
+      - run:
+          name: Instalar kind
+          command: |
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+            chmod +x ./kind
+            sudo mv ./kind /usr/local/bin/kind
+      - run:
+          name: Crear clúster kind
+          command: kind create cluster --name dias-vividos-cluster
+      - run:
+          name: Desplegar en Kubernetes vía ArgoCD
+          command: |
+            # Se asume que la CLI de ArgoCD ya está instalada y configurada en la máquina
+            argocd app sync dias-vividos-cli --grpc-web
+      - run:
+          name: Eliminar clúster kind (opcional)
+          command: kind delete cluster --name dias-vividos-cluster
+
+workflows:
+  version: 2
+  build_test_deploy:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - lint:
+          requires:
+            - build
+      - static_analysis:
+          requires:
+            - build
+      - sonar_scan:
+          requires:
+            - build
+      - artifact:
+          filters:
+            branches:
+              only: main
+          requires:
+            - test
+            - lint
+            - static_analysis
+            - sonar_scan
+      - deploy:
+          filters:
+            branches:
+              only: main
+          requires:
+            - artifact
