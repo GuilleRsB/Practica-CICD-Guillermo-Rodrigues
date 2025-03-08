@@ -1,0 +1,7 @@
+# Dependencias para la aplicación (si hubiera alguna específica)
+# Dependencias para pruebas y análisis
+pytest
+pytest-cov
+flake8
+bandit
+snyk
