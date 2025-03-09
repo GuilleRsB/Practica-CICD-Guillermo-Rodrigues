@@ -66,8 +66,7 @@ jobs:
   # Job: Análisis de código y vulnerabilidades con SonarQube
   sonar_scan:
     docker:
-      - image: cimg/openjdk:17.0.7-slim
-  # Imagen con Java, necesaria para sonar-scanner
+      - image: cimg/openjdk:latest # Imagen con Java, necesaria para sonar-scanner
     steps:
       - checkout
       - run:
