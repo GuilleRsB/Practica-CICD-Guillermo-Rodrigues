@@ -79,23 +79,23 @@ jobs:
   # --------------------------
   # Job: sonar_scan
   # Ejecuta el análisis de código con SonarScanner en SonarCloud.
-  # Descarga SonarScanner, lo descomprime y lo ejecuta.
-  # Requiere definir las variables SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
-  # IMPORTANTE: Se usa la imagen cimg/openjdk:17.0.8 para asegurarnos de usar Java 17.
+  # Descarga y ejecuta SonarScanner.
+  # Requiere definir las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
+  # Se utiliza la imagen oficial de SonarScanner para evitar problemas con la versión de Java.
   # --------------------------
   sonar_scan:
-  docker:
-    - image: sonarsource/sonar-scanner-cli:latest  # Imagen oficial de SonarScanner
-  steps:
-    - checkout
-    - run:
-        name: Ejecutar SonarScanner
-        command: |
-          sonar-scanner \
-            -Dsonar.projectKey=dias-vividos-cli \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_LOGIN
+    docker:
+      - image: sonarsource/sonar-scanner-cli:latest  # Imagen oficial de SonarScanner
+    steps:
+      - checkout
+      - run:
+          name: Ejecutar SonarScanner
+          command: |
+            sonar-scanner \
+              -Dsonar.projectKey=dias-vividos-cli \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.login=$SONAR_LOGIN
 
   # --------------------------
   # Job: artifact
