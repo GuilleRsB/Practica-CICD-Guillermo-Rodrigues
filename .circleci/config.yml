@@ -33,7 +33,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Instalar dependencias de prueba
+          name: Instalar dependencias de prueba y herramientas
           command: |
             pip install -r requirements.txt
             pip install pytest pytest-cov
@@ -80,11 +80,12 @@ jobs:
   # Job: sonar_scan
   # Ejecuta el análisis de código con SonarScanner en SonarCloud.
   # Descarga SonarScanner, lo descomprime y lo ejecuta.
-  # Requiere definir las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
+  # Requiere definir las variables SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
+  # IMPORTANTE: Se usa la imagen cimg/openjdk:17.0.8 para asegurarnos de usar Java 17.
   # --------------------------
   sonar_scan:
     docker:
-      - image: cimg/openjdk:17.0.8  # Contenedor con Java 17
+      - image: cimg/openjdk:17.0.8  # Imagen con Java 17
     steps:
       - checkout
       - run:
@@ -103,15 +104,15 @@ jobs:
 
   # --------------------------
   # Job: artifact
-  # Construye y publica la imagen Docker en Docker Hub y guarda la imagen como artefacto.
-  # Se ejecuta solo en la rama main.
+  # Construye y publica la imagen Docker en Docker Hub, y guarda la imagen como artefacto.
+  # Este job se ejecuta solo en la rama main.
   # --------------------------
   artifact:
     docker:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - setup_remote_docker  # Habilita el uso de Docker
+      - setup_remote_docker  # Permite usar comandos Docker
       - run:
           name: Autenticarse en Docker Hub
           command: |
@@ -135,11 +136,11 @@ jobs:
   # --------------------------
   # Job: deploy
   # Despliega la aplicación en Kubernetes usando kind y ArgoCD.
-  # Se ejecuta solo en la rama main.
-  # Usa una máquina completa para tener acceso total a Docker.
+  # Este job se ejecuta solo en la rama main.
+  # Se utiliza "machine" para tener acceso completo al entorno Docker (requerido por kind).
   # --------------------------
   deploy:
-    machine: true
+    machine: true  # Usa máquina completa
     steps:
       - checkout
       - run:
@@ -184,7 +185,7 @@ workflows:
       - artifact:
           filters:
             branches:
-              only: main  # Se ejecuta solo en la rama main
+              only: main  # Este job se ejecuta solo en la rama main
           requires:
             - test
             - lint
@@ -193,6 +194,6 @@ workflows:
       - deploy:
           filters:
             branches:
-              only: main  # Se ejecuta solo en la rama main
+              only: main  # Este job se ejecuta solo en la rama main
           requires:
             - artifact
