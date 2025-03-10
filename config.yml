@@ -8,10 +8,10 @@ jobs:
   # --------------------------
   build:
     docker:
-      - image: circleci/python:3.8  # Usamos una imagen de Python 3.8 como entorno base.
+      - image: circleci/python:3.8  # Imagen base con Python 3.8.
     steps:
       - checkout  # Clona el repositorio.
-      - setup_remote_docker  # Habilita el uso de Docker remoto para construir imágenes.
+      - setup_remote_docker  # Habilita el uso de Docker remoto.
       - run:
           name: Instalar dependencias de la aplicación
           command: pip install -r requirements.txt
@@ -21,7 +21,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - .  # Se persiste el workspace para ser usado en jobs posteriores.
+            - .  # Persiste el workspace para jobs posteriores.
 
   # --------------------------
   # Job: test
@@ -42,7 +42,7 @@ jobs:
           command: pytest --cov=. --cov-report xml
       - store_artifacts:
           path: coverage.xml
-          destination: coverage  # Guarda el reporte de cobertura para su revisión.
+          destination: coverage  # Guarda el reporte de cobertura.
 
   # --------------------------
   # Job: lint
@@ -79,14 +79,14 @@ jobs:
   # --------------------------
   # Job: sonar_scan
   # Ejecuta el análisis de código con SonarScanner en SonarCloud.
-  # Este job descarga SonarScanner, lo descomprime y lo ejecuta.
-  # Se requiere que estén definidas las variables de entorno SONAR_HOST_URL y SONAR_LOGIN.
-  # Se usa una imagen de Docker que incluya Java, necesaria para sonar-scanner.
+  # Descarga SonarScanner, lo descomprime y lo ejecuta.
+  # Requiere definir SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
+  # Nota: Revisa la configuración de imágenes, ya que se usan dos imágenes (una para Docker y otra para Java).
   # --------------------------
   sonar_scan:
     docker:
-      - image: docker:latest  # Imagen para ejecutar comandos Docker si es necesario.
-      - image: cimg/openjdk:17.0.7  # Imagen con Java 17 (nota: se usa esta etiqueta para evitar problemas de "manifest unknown")
+      - image: cimg/openjdk:17.0.8  # Contenedor principal con Java 17
+      - image: docker:20.10.16      # Contenedor secundario para comandos Docker (si es necesario)
     steps:
       - checkout
       - run:
@@ -99,19 +99,19 @@ jobs:
               -Dsonar.sources=. \
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_LOGIN
-      # Recuerda configurar las variables SONAR_HOST_URL y SONAR_LOGIN en la configuración del proyecto en CircleCI.
+      # Configura SONAR_HOST_URL y SONAR_LOGIN en la configuración del proyecto en CircleCI.
 
   # --------------------------
   # Job: artifact
   # Construye y publica la imagen Docker en Docker Hub, y guarda la imagen como artefacto.
-  # Este job se ejecuta solo en la rama main.
+  # Se ejecuta solo en la rama main.
   # --------------------------
   artifact:
     docker:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - setup_remote_docker  # Permite usar comandos Docker.
+      - setup_remote_docker  # Habilita comandos Docker.
       - run:
           name: Autenticarse en Docker Hub
           command: |
@@ -130,16 +130,16 @@ jobs:
             docker save dias-vividos-cli > dias-vividos-cli.tar
       - store_artifacts:
           path: dias-vividos-cli.tar
-          destination: artifact  # Guarda el archivo tar de la imagen como artefacto.
+          destination: artifact  # Guarda el archivo tar como artefacto.
 
   # --------------------------
   # Job: deploy
   # Despliega la aplicación en Kubernetes usando kind y ArgoCD.
-  # Este job se ejecuta solo en la rama main.
-  # Se utiliza "machine" para tener acceso completo al entorno Docker (necesario para kind).
+  # Se ejecuta solo en la rama main.
+  # Se usa "machine" para acceso completo a Docker (necesario para kind).
   # --------------------------
   deploy:
-    machine: true  # Usa máquina completa en lugar de contenedores Docker.
+    machine: true  # Usa una máquina completa.
     steps:
       - checkout
       - run:
@@ -154,7 +154,7 @@ jobs:
       - run:
           name: Desplegar en Kubernetes vía ArgoCD
           command: |
-            # Se asume que la CLI de ArgoCD ya está instalada y configurada en la máquina.
+            # Se asume que la CLI de ArgoCD ya está instalada y configurada.
             argocd app sync dias-vividos-cli --grpc-web
       - run:
           name: Eliminar clúster kind (opcional)
@@ -162,7 +162,7 @@ jobs:
 
 # --------------------------
 # Workflows
-# Define la secuencia en que se ejecutan los jobs.
+# Define la secuencia de ejecución de los jobs.
 # --------------------------
 workflows:
   version: 2
@@ -184,7 +184,7 @@ workflows:
       - artifact:
           filters:
             branches:
-              only: main  # Solo se ejecuta en la rama main
+              only: main  # Solo se ejecuta en la rama main.
           requires:
             - test
             - lint
@@ -193,6 +193,6 @@ workflows:
       - deploy:
           filters:
             branches:
-              only: main  # Solo se ejecuta en la rama main
+              only: main  # Solo se ejecuta en la rama main.
           requires:
             - artifact
