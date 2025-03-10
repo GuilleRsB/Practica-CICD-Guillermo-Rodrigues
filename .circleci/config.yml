@@ -66,9 +66,16 @@ jobs:
   # Job: Análisis de código y vulnerabilidades con SonarQube
   sonar_scan:
     docker:
-      - image: openjdk:17-slim # Imagen con Java, necesaria para sonar-scanner
+      - image: openjdk:17-jdk-slim   # Imagen que garantiza Java 17
     steps:
       - checkout
+      - run:
+          name: Instalar herramientas necesarias (wget, unzip)
+          command: |
+            apt-get update && apt-get install -y wget unzip
+      - run:
+          name: Verificar versión de Java
+          command: java -version
       - run:
           name: Descargar e instalar SonarScanner
           command: |
@@ -80,16 +87,13 @@ jobs:
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_LOGIN
 
-      # Nota: Configura las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
-
-  # Job: Generar y publicar el artefacto (imagen Docker) (solo en master/main)
+  # Job: Generar y publicar el artefacto (imagen Docker) (solo en la rama main)
   artifact:
     docker:
       - image: circleci/python:3.8
     steps:
       - checkout
       - setup_remote_docker  # Permite ejecutar comandos Docker
-      # Paso de autenticación en Docker Hub
       - run:
           name: Autenticarse en Docker Hub
           command: |
@@ -110,7 +114,7 @@ jobs:
           path: dias-vividos-cli.tar
           destination: artifact
 
-  # Job: Despliegue en Kubernetes usando kind y ArgoCD (solo en master/main)
+  # Job: Despliegue en Kubernetes usando kind y ArgoCD (solo en la rama main)
   deploy:
     machine: true  # Se utiliza "machine" para tener acceso nativo a Docker (necesario para kind)
     steps:
