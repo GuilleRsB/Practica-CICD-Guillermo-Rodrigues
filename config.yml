@@ -86,7 +86,7 @@ jobs:
   sonar_scan:
     docker:
       - image: docker:latest  # Contenedor primario (ejecuta los comandos por defecto).
-      - image: cimg/openjdk:17.0.2-slim  # Contenedor secundario que aporta Java 17.
+      - image: cimg/openjdk:17.0.8  # Contenedor secundario que aporta Java 17.
     steps:
       - checkout
       - run:
