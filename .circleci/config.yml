@@ -84,23 +84,18 @@ jobs:
   # IMPORTANTE: Se usa la imagen cimg/openjdk:17.0.8 para asegurarnos de usar Java 17.
   # --------------------------
   sonar_scan:
-    docker:
-      - image: cimg/openjdk:17.0.8  # Imagen con Java 17
-    steps:
-      - checkout
-      - run:
-          name: Verificar versión de Java
-          command: java -version
-      - run:
-          name: Descargar e instalar SonarScanner
-          command: |
-            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-            unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-            ./sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
-              -Dsonar.projectKey=dias-vividos-cli \
-              -Dsonar.sources=. \
-              -Dsonar.host.url=$SONAR_HOST_URL \
-              -Dsonar.login=$SONAR_LOGIN
+  docker:
+    - image: sonarsource/sonar-scanner-cli:latest  # Imagen oficial de SonarScanner
+  steps:
+    - checkout
+    - run:
+        name: Ejecutar SonarScanner
+        command: |
+          sonar-scanner \
+            -Dsonar.projectKey=dias-vividos-cli \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_LOGIN
 
   # --------------------------
   # Job: artifact
