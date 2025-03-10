@@ -64,18 +64,12 @@ jobs:
           command: bandit -r .
 
   # Job: Análisis de código y vulnerabilidades con SonarQube
-  sonar_scan:
+    sonar_scan:
     docker:
-      - image: cimg/openjdk:17.0.7-slim  # Se usará Java 17.0.2 (sin '-slim')
+      - image: docker:20.10.16
+      - image: cimg/openjdk:17.0.7-slim   # Imagen con Java 17
     steps:
       - checkout
-      - run:
-          name: Instalar wget y unzip
-          command: |
-            sudo apt-get update && sudo apt-get install -y wget unzip
-      - run:
-          name: Verificar versión de Java
-          command: java -version
       - run:
           name: Descargar e instalar SonarScanner
           command: |
@@ -86,6 +80,7 @@ jobs:
               -Dsonar.sources=. \
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_LOGIN
+
       # Nota: Configura las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en los settings de CircleCI.
 
   # Job: Generar y publicar el artefacto (imagen Docker) (solo en la rama main)
