@@ -66,13 +66,13 @@ jobs:
   # Job: Análisis de código y vulnerabilidades con SonarQube
   sonar_scan:
     docker:
-      - image: openjdk:17-jdk-slim   # Imagen que garantiza Java 17
+      - image: cimg/openjdk:17.0   # Imagen de CircleCI con Java 17
     steps:
       - checkout
       - run:
-          name: Instalar herramientas necesarias (wget, unzip)
+          name: Instalar herramientas necesarias (wget y unzip)
           command: |
-            apt-get update && apt-get install -y wget unzip
+            sudo apt-get update && sudo apt-get install -y wget unzip
       - run:
           name: Verificar versión de Java
           command: java -version
@@ -163,9 +163,4 @@ workflows:
             - lint
             - static_analysis
             - sonar_scan
-      - deploy:
-          filters:
-            branches:
-              only: main
-          requires:
-            - artifact
+  
