@@ -83,7 +83,7 @@ jobs:
   # Requiere definir SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
   # Nota: Revisa la configuración de imágenes, ya que se usan dos imágenes (una para Docker y otra para Java).
   # --------------------------
-  sonar_scan:
+   sonar_scan:
     docker:
       - image: cimg/openjdk:17.0.8  # Contenedor principal con Java 17
       - image: docker:20.10.16      # Contenedor secundario para comandos Docker (si es necesario)
@@ -93,7 +93,8 @@ jobs:
           name: Descargar e instalar SonarScanner
           command: |
             wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-            unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+            # Usamos jar en lugar de unzip para evitar el problema de symlinks
+            jar xf sonar-scanner-cli-4.8.0.2856-linux.zip
             ./sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
               -Dsonar.projectKey=dias-vividos-cli \
               -Dsonar.sources=. \
