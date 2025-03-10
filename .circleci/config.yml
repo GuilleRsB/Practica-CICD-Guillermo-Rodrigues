@@ -67,7 +67,7 @@ jobs:
   sonar_scan:
     docker:
       - image: docker:20.10.16
-      - image: cimg/openjdk:17.0.7-slim   # Imagen con Java 17
+      - image: cimg/openjdk:17.0.8-slim   # Imagen con Java 17
     steps:
       - checkout
       - run:
