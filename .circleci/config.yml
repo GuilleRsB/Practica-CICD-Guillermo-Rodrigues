@@ -42,7 +42,7 @@ jobs:
           command: pytest --cov=. --cov-report xml
       - store_artifacts:
           path: coverage.xml
-          destination: coverage  # Guarda el reporte de cobertura
+          destination: coverage  # Guarda el reporte de cobertura para su revisión
 
   # --------------------------
   # Job: lint
@@ -81,119 +81,21 @@ jobs:
   # Ejecuta el análisis de código con SonarScanner en SonarCloud.
   # Descarga SonarScanner, lo descomprime y lo ejecuta.
   # Requiere definir las variables SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
-  # IMPORTANTE: Se usa la imagen cimg/openjdk:17.0.8 para asegurarnos de usar Java 17.
+  # IMPORTANTE: Se usa la imagen cimg/openjdk:17.0.8 para usar Java 17.
   # --------------------------
   sonar_scan:
-  docker:
-    - image: cimg/openjdk:17.0.8  # Contenedor principal con Java 17
-  steps:
-    - checkout
-    - run:
-        name: Verificar versión de Java
-        command: java -version
-    - run:
-        name: Descargar e instalar SonarScanner
-        command: |
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-          unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-          ./sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
-            -Dsonar.projectKey=dias-vividos-cli \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_LOGIN
-
-  # --------------------------
-  # Job: artifact
-  # Construye y publica la imagen Docker en Docker Hub, y guarda la imagen como artefacto.
-  # Este job se ejecuta solo en la rama main.
-  # --------------------------
-  artifact:
     docker:
-      - image: circleci/python:3.8
-    steps:
-      - checkout
-      - setup_remote_docker  # Permite usar comandos Docker
-      - run:
-          name: Autenticarse en Docker Hub
-          command: |
-            echo "Autenticando en Docker Hub..."
-            docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
-      - run:
-          name: Generar y publicar artefacto (imagen Docker)
-          command: |
-            echo "Construyendo la imagen Docker..."
-            docker build -t dias-vividos-cli .
-            echo "Etiquetando la imagen..."
-            docker tag dias-vividos-cli $DOCKERHUB_USERNAME/dias-vividos-cli:latest
-            echo "Publicando la imagen en Docker Hub..."
-            docker push $DOCKERHUB_USERNAME/dias-vividos-cli:latest
-            echo "Guardando la imagen en un archivo tar..."
-            docker save dias-vividos-cli > dias-vividos-cli.tar
-      - store_artifacts:
-          path: dias-vividos-cli.tar
-          destination: artifact  # Guarda el archivo tar de la imagen
-
-  # --------------------------
-  # Job: deploy
-  # Despliega la aplicación en Kubernetes usando kind y ArgoCD.
-  # Este job se ejecuta solo en la rama main.
-  # Se utiliza "machine" para tener acceso completo al entorno Docker (requerido por kind).
-  # --------------------------
-  deploy:
-    machine: true  # Usa máquina completa
+      - image: cimg/openjdk:17.0.8  # Imagen con Java 17
     steps:
       - checkout
       - run:
-          name: Instalar kind
+          name: Verificar versión de Java
+          command: java -version
+      - run:
+          name: Descargar e instalar SonarScanner
           command: |
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
-            chmod +x ./kind
-            sudo mv ./kind /usr/local/bin/kind
-      - run:
-          name: Crear clúster kind
-          command: kind create cluster --name dias-vividos-cluster
-      - run:
-          name: Desplegar en Kubernetes vía ArgoCD
-          command: |
-            # Se asume que la CLI de ArgoCD ya está instalada y configurada en la máquina.
-            argocd app sync dias-vividos-cli --grpc-web
-      - run:
-          name: Eliminar clúster kind (opcional)
-          command: kind delete cluster --name dias-vividos-cluster
-
-# --------------------------
-# Workflows
-# Define la secuencia en que se ejecutan los jobs.
-# --------------------------
-workflows:
-  version: 2
-  build_test_deploy:
-    jobs:
-      - build
-      - test:
-          requires:
-            - build
-      - lint:
-          requires:
-            - build
-      - static_analysis:
-          requires:
-            - build
-      - sonar_scan:
-          requires:
-            - build
-      - artifact:
-          filters:
-            branches:
-              only: main  # Este job se ejecuta solo en la rama main
-          requires:
-            - test
-            - lint
-            - static_analysis
-            - sonar_scan
-      - deploy:
-          filters:
-            branches:
-              only: main  # Este job se ejecuta solo en la rama main
-          requires:
-            - artifact
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+            unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+            ./sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
+              -Dsonar.projectKey=dias-vividos-cli \
+              -Dsonar.sources
