@@ -8,10 +8,10 @@ jobs:
   # --------------------------
   build:
     docker:
-      - image: circleci/python:3.8  # Usamos una imagen de Python 3.8 como entorno base.
+      - image: circleci/python:3.8  # Imagen base con Python 3.8
     steps:
-      - checkout  # Clona el repositorio.
-      - setup_remote_docker  # Habilita el uso de Docker remoto para construir imágenes.
+      - checkout  # Clona el repositorio
+      - setup_remote_docker  # Habilita Docker remoto para construir imágenes
       - run:
           name: Instalar dependencias de la aplicación
           command: pip install -r requirements.txt
@@ -21,7 +21,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - .  # Se persiste el workspace para ser usado en jobs posteriores.
+            - .  # Persiste el workspace para los jobs posteriores
 
   # --------------------------
   # Job: test
@@ -42,7 +42,7 @@ jobs:
           command: pytest --cov=. --cov-report xml
       - store_artifacts:
           path: coverage.xml
-          destination: coverage  # Guarda el reporte de cobertura para su revisión.
+          destination: coverage  # Guarda el reporte de cobertura
 
   # --------------------------
   # Job: lint
@@ -80,40 +80,38 @@ jobs:
   # Job: sonar_scan
   # Ejecuta el análisis de código con SonarScanner en SonarCloud.
   # Descarga SonarScanner, lo descomprime y lo ejecuta.
-  # Requiere definir SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
-  # Se usan dos imágenes: una para Docker (si se necesita) y otra con Java 17.
+  # Requiere definir las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
   # --------------------------
- sonar_scan:
-  docker:
-    - image: cimg/openjdk:17.0.8  # Contenedor principal con Java 17
-  steps:
-    - checkout
-    - run:
-        name: Verificar versión de Java
-        command: java -version
-    - run:
-        name: Descargar e instalar SonarScanner
-        command: |
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-          unzip sonar-scanner-cli-4.8.0.2856-linux.zip
-          ./sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
-            -Dsonar.projectKey=dias-vividos-cli \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_LOGIN
-      # Recuerda configurar las variables SONAR_HOST_URL y SONAR_LOGIN en la configuración del proyecto en CircleCI.
+  sonar_scan:
+    docker:
+      - image: cimg/openjdk:17.0.8  # Contenedor con Java 17
+    steps:
+      - checkout
+      - run:
+          name: Verificar versión de Java
+          command: java -version
+      - run:
+          name: Descargar e instalar SonarScanner
+          command: |
+            wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+            unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+            ./sonar-scanner-4.8.0.2856-linux/bin/sonar-scanner \
+              -Dsonar.projectKey=dias-vividos-cli \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.login=$SONAR_LOGIN
 
   # --------------------------
   # Job: artifact
-  # Construye y publica la imagen Docker en Docker Hub, y guarda la imagen como artefacto.
-  # Este job se ejecuta solo en la rama main.
+  # Construye y publica la imagen Docker en Docker Hub y guarda la imagen como artefacto.
+  # Se ejecuta solo en la rama main.
   # --------------------------
   artifact:
     docker:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - setup_remote_docker  # Permite usar comandos Docker.
+      - setup_remote_docker  # Habilita el uso de Docker
       - run:
           name: Autenticarse en Docker Hub
           command: |
@@ -132,16 +130,16 @@ jobs:
             docker save dias-vividos-cli > dias-vividos-cli.tar
       - store_artifacts:
           path: dias-vividos-cli.tar
-          destination: artifact  # Guarda el archivo tar de la imagen como artefacto.
+          destination: artifact  # Guarda el archivo tar de la imagen
 
   # --------------------------
   # Job: deploy
   # Despliega la aplicación en Kubernetes usando kind y ArgoCD.
-  # Este job se ejecuta solo en la rama main.
-  # Se utiliza "machine" para tener acceso completo al entorno Docker (necesario para kind).
+  # Se ejecuta solo en la rama main.
+  # Usa una máquina completa para tener acceso total a Docker.
   # --------------------------
   deploy:
-    machine: true  # Usa una máquina completa en lugar de contenedores Docker.
+    machine: true
     steps:
       - checkout
       - run:
@@ -186,7 +184,7 @@ workflows:
       - artifact:
           filters:
             branches:
-              only: main  # Este job solo se ejecuta en la rama main.
+              only: main  # Se ejecuta solo en la rama main
           requires:
             - test
             - lint
@@ -195,6 +193,6 @@ workflows:
       - deploy:
           filters:
             branches:
-              only: main  # Este job solo se ejecuta en la rama main.
+              only: main  # Se ejecuta solo en la rama main
           requires:
             - artifact
