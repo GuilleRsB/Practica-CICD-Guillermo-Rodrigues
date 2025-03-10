@@ -66,7 +66,7 @@ jobs:
   # Job: Análisis de código y vulnerabilidades con SonarQube
   sonar_scan:
     docker:
-      - image: cimg/openjdk:17.0.2-slim  # Usamos Java 17 para evitar el error de versión
+      - image: cimg/openjdk:17.0.2  # Se usará Java 17.0.2 (sin '-slim')
     steps:
       - checkout
       - run:
