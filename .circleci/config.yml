@@ -1,13 +1,17 @@
+# Versión de la configuración de CircleCI
 version: 2.1
 
 jobs:
-  # Job: Construcción de la imagen Docker
+  # --------------------------
+  # Job: build
+  # Construye la imagen Docker de la aplicación.
+  # --------------------------
   build:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.8  # Usamos una imagen de Python 3.8 como entorno base.
     steps:
-      - checkout
-      - setup_remote_docker   # Habilita Docker remoto para este job
+      - checkout  # Clona el repositorio.
+      - setup_remote_docker  # Habilita el uso de Docker remoto para construir imágenes.
       - run:
           name: Instalar dependencias de la aplicación
           command: pip install -r requirements.txt
@@ -17,9 +21,12 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - .
+            - .  # Se persiste el workspace para ser usado en jobs posteriores.
 
-  # Job: Ejecutar pruebas y generar reporte de cobertura
+  # --------------------------
+  # Job: test
+  # Ejecuta las pruebas unitarias y genera el reporte de cobertura.
+  # --------------------------
   test:
     docker:
       - image: circleci/python:3.8
@@ -35,9 +42,12 @@ jobs:
           command: pytest --cov=. --cov-report xml
       - store_artifacts:
           path: coverage.xml
-          destination: coverage
+          destination: coverage  # Guarda el reporte de cobertura para su revisión.
 
-  # Job: Linting con Flake8
+  # --------------------------
+  # Job: lint
+  # Ejecuta Flake8 para análisis de estilo y calidad de código.
+  # --------------------------
   lint:
     docker:
       - image: circleci/python:3.8
@@ -50,7 +60,10 @@ jobs:
           name: Ejecutar linting
           command: flake8 .
 
-  # Job: Análisis estático con Bandit
+  # --------------------------
+  # Job: static_analysis
+  # Realiza análisis estático de seguridad del código usando Bandit.
+  # --------------------------
   static_analysis:
     docker:
       - image: circleci/python:3.8
@@ -63,11 +76,17 @@ jobs:
           name: Ejecutar análisis estático
           command: bandit -r .
 
-  # Job: Análisis de código y vulnerabilidades con SonarQube
+  # --------------------------
+  # Job: sonar_scan
+  # Ejecuta el análisis de código con SonarScanner en SonarCloud.
+  # Descarga SonarScanner, lo descomprime y lo ejecuta.
+  # Requiere definir SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
+  # Se usan dos imágenes: una para Docker (si se necesita) y otra con Java 17.
+  # --------------------------
   sonar_scan:
     docker:
-      - image: docker:20.10.16
-      - image: cimg/openjdk:17.0.8   # Imagen con Java 17
+      - image: cimg/openjdk:17.0.8  # Contenedor principal con Java 17
+      - image: docker:20.10.16      # Contenedor secundario para comandos Docker (si es necesario)
     steps:
       - checkout
       - run:
@@ -80,22 +99,26 @@ jobs:
               -Dsonar.sources=. \
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_LOGIN
-      # Nota: Configura las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en los settings de CircleCI.
+      # Recuerda configurar las variables SONAR_HOST_URL y SONAR_LOGIN en la configuración del proyecto en CircleCI.
 
-  # Job: Generar y publicar el artefacto (imagen Docker) (solo en la rama main)
+  # --------------------------
+  # Job: artifact
+  # Construye y publica la imagen Docker en Docker Hub, y guarda la imagen como artefacto.
+  # Este job se ejecuta solo en la rama main.
+  # --------------------------
   artifact:
     docker:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - setup_remote_docker  # Permite ejecutar comandos Docker
+      - setup_remote_docker  # Permite usar comandos Docker.
       - run:
           name: Autenticarse en Docker Hub
           command: |
             echo "Autenticando en Docker Hub..."
             docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
       - run:
-          name: Generar y publicar imagen Docker
+          name: Generar y publicar artefacto (imagen Docker)
           command: |
             echo "Construyendo la imagen Docker..."
             docker build -t dias-vividos-cli .
@@ -107,11 +130,16 @@ jobs:
             docker save dias-vividos-cli > dias-vividos-cli.tar
       - store_artifacts:
           path: dias-vividos-cli.tar
-          destination: artifact
+          destination: artifact  # Guarda el archivo tar de la imagen como artefacto.
 
-  # Job: Despliegue en Kubernetes usando kind y ArgoCD (solo en la rama main)
+  # --------------------------
+  # Job: deploy
+  # Despliega la aplicación en Kubernetes usando kind y ArgoCD.
+  # Este job se ejecuta solo en la rama main.
+  # Se utiliza "machine" para tener acceso completo al entorno Docker (necesario para kind).
+  # --------------------------
   deploy:
-    machine: true  # Se usa "machine" para tener acceso nativo a Docker (necesario para kind)
+    machine: true  # Usa una máquina completa en lugar de contenedores Docker.
     steps:
       - checkout
       - run:
@@ -126,12 +154,16 @@ jobs:
       - run:
           name: Desplegar en Kubernetes vía ArgoCD
           command: |
-            # Se asume que la CLI de ArgoCD ya está instalada y configurada en la máquina
+            # Se asume que la CLI de ArgoCD ya está instalada y configurada en la máquina.
             argocd app sync dias-vividos-cli --grpc-web
       - run:
           name: Eliminar clúster kind (opcional)
           command: kind delete cluster --name dias-vividos-cluster
 
+# --------------------------
+# Workflows
+# Define la secuencia en que se ejecutan los jobs.
+# --------------------------
 workflows:
   version: 2
   build_test_deploy:
@@ -152,7 +184,7 @@ workflows:
       - artifact:
           filters:
             branches:
-              only: main
+              only: main  # Este job solo se ejecuta en la rama main.
           requires:
             - test
             - lint
@@ -161,7 +193,6 @@ workflows:
       - deploy:
           filters:
             branches:
-              only: main
+              only: main  # Este job solo se ejecuta en la rama main.
           requires:
             - artifact
-
