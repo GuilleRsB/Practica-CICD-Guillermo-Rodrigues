@@ -8,17 +8,10 @@ jobs:
   # --------------------------
   build:
     docker:
-<<<<<<< HEAD
-      - image: circleci/python:3.8  # Imagen base con Python 3.8.
-    steps:
-      - checkout  # Clona el repositorio.
-      - setup_remote_docker  # Habilita el uso de Docker remoto.
-=======
       - image: circleci/python:3.8  # Usamos una imagen de Python 3.8 como entorno base.
     steps:
       - checkout  # Clona el repositorio.
       - setup_remote_docker  # Habilita el uso de Docker remoto para construir imágenes.
->>>>>>> main
       - run:
           name: Instalar dependencias de la aplicación
           command: pip install -r requirements.txt
@@ -28,11 +21,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-<<<<<<< HEAD
-            - .  # Persiste el workspace para jobs posteriores.
-=======
             - .  # Se persiste el workspace para ser usado en jobs posteriores.
->>>>>>> main
 
   # --------------------------
   # Job: test
