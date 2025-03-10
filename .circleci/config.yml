@@ -68,7 +68,6 @@ jobs:
     docker:
       - image: docker:20.10.16
       - image: cimg/openjdk:17.0.8   # Imagen con Java 17
-=======
     steps:
       - checkout
       - run:
