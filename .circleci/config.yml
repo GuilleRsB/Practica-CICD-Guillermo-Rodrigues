@@ -1,4 +1,3 @@
-# Versión de la configuración de CircleCI
 version: 2.1
 
 jobs:
@@ -79,9 +78,8 @@ jobs:
   # --------------------------
   # Job: sonar_scan
   # Ejecuta el análisis de código con SonarScanner en SonarCloud.
-  # Descarga y ejecuta SonarScanner.
-  # Requiere definir las variables de entorno SONAR_HOST_URL y SONAR_LOGIN en CircleCI.
-  # Se utiliza la imagen oficial de SonarScanner para evitar problemas con la versión de Java.
+  # Descarga SonarScanner (usando la imagen oficial) y lo ejecuta.
+  # Requiere definir SONAR_HOST_URL, SONAR_LOGIN y SONAR_ORGANIZATION en CircleCI.
   # --------------------------
   sonar_scan:
     docker:
@@ -92,11 +90,11 @@ jobs:
           name: Ejecutar SonarScanner
           command: |
             sonar-scanner \
-            -Dsonar.projectKey=GuilleRsB_Practica-CICD-Guillermo-Rodrigues \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_LOGIN \
-            -Dsonar.organization=guillersb
+              -Dsonar.projectKey=dias-vividos-cli \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.login=$SONAR_LOGIN \
+              -Dsonar.organization=$SONAR_ORGANIZATION
 
   # --------------------------
   # Job: artifact
@@ -136,39 +134,33 @@ jobs:
   # Se utiliza "machine" para tener acceso completo al entorno Docker (requerido por kind).
   # --------------------------
   deploy:
-  machine: true  # Usa una máquina completa para tener acceso completo a Docker y herramientas
-  steps:
-    - checkout
-    - run:
-        name: Instalar kind
-        command: |
-          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
-          chmod +x ./kind
-          sudo mv ./kind /usr/local/bin/kind
-    - run:
-        name: Instalar ArgoCD CLI
-        command: |
-          echo "Instalando ArgoCD CLI..."
-          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-          chmod +x argocd
-          sudo mv argocd /usr/local/bin/argocd
-    - run:
-        name: Crear clúster kind
-        command: kind create cluster --name dias-vividos-cluster
-    - run:
-        name: Desplegar en Kubernetes vía ArgoCD
-        command: |
-          # Asegúrate de que la CLI de ArgoCD esté configurada correctamente.
-          argocd app sync dias-vividos-cli --grpc-web
-    - run:
-        name: Eliminar clúster kind (opcional)
-        command: kind delete cluster --name dias-vividos-cluster
+    machine: true  # Usa máquina completa
+    steps:
+      - checkout
+      - run:
+          name: Instalar kind
+          command: |
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+            chmod +x ./kind
+            sudo mv ./kind /usr/local/bin/kind
+      - run:
+          name: Instalar ArgoCD CLI
+          command: |
+            echo "Instalando ArgoCD CLI..."
+            curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+            chmod +x argocd
+            sudo mv argocd /usr/local/bin/
+            argocd version
+      - run:
+          name: Crear clúster kind
+          command: kind create cluster --name dias-vividos-cluster
+      - run:
+          name: Desplegar con ArgoCD
+          command: argocd app sync dias-vividos-cli --grpc-web
+      - run:
+          name: Eliminar clúster kind (opcional)
+          command: kind delete cluster --name dias-vividos-cluster
 
-
-# --------------------------
-# Workflows
-# Define la secuencia en que se ejecutan los jobs.
-# --------------------------
 workflows:
   version: 2
   build_test_deploy:
