@@ -136,26 +136,34 @@ jobs:
   # Se utiliza "machine" para tener acceso completo al entorno Docker (requerido por kind).
   # --------------------------
   deploy:
-    machine: true  # Usa máquina completa
-    steps:
-      - checkout
-      - run:
-          name: Instalar kind
-          command: |
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
-            chmod +x ./kind
-            sudo mv ./kind /usr/local/bin/kind
-      - run:
-          name: Crear clúster kind
-          command: kind create cluster --name dias-vividos-cluster
-      - run:
-          name: Desplegar en Kubernetes vía ArgoCD
-          command: |
-            # Se asume que la CLI de ArgoCD ya está instalada y configurada en la máquina.
-            argocd app sync dias-vividos-cli --grpc-web
-      - run:
-          name: Eliminar clúster kind (opcional)
-          command: kind delete cluster --name dias-vividos-cluster
+  machine: true  # Usa una máquina completa para tener acceso completo a Docker y herramientas
+  steps:
+    - checkout
+    - run:
+        name: Instalar kind
+        command: |
+          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+    - run:
+        name: Instalar ArgoCD CLI
+        command: |
+          echo "Instalando ArgoCD CLI..."
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv argocd /usr/local/bin/argocd
+    - run:
+        name: Crear clúster kind
+        command: kind create cluster --name dias-vividos-cluster
+    - run:
+        name: Desplegar en Kubernetes vía ArgoCD
+        command: |
+          # Asegúrate de que la CLI de ArgoCD esté configurada correctamente.
+          argocd app sync dias-vividos-cli --grpc-web
+    - run:
+        name: Eliminar clúster kind (opcional)
+        command: kind delete cluster --name dias-vividos-cluster
+
 
 # --------------------------
 # Workflows
