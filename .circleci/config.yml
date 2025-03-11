@@ -97,6 +97,7 @@ jobs:
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_LOGIN
               -Dsonar.organization=$SONAR_ORGANIZATION
+              -Dsonar.organization=GuilleRsB_Practica-CICD-Guillermo-Rodrigues
 
   # --------------------------
   # Job: artifact
