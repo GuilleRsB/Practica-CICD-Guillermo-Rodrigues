@@ -92,12 +92,11 @@ jobs:
           name: Ejecutar SonarScanner
           command: |
             sonar-scanner \
-              -Dsonar.projectKey=dias-vividos-cli \
-              -Dsonar.sources=. \
-              -Dsonar.host.url=$SONAR_HOST_URL \
-              -Dsonar.login=$SONAR_LOGIN
-              -Dsonar.organization=$SONAR_ORGANIZATION
-              -Dsonar.organization=GuilleRsB_Practica-CICD-Guillermo-Rodrigues
+            -Dsonar.projectKey=GuilleRsB_Practica-CICD-Guillermo-Rodrigues \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_LOGIN \
+            -Dsonar.organization=guillersb
 
   # --------------------------
   # Job: artifact
