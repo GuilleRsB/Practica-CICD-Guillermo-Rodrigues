@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: practica-cicd
+  labels:
+    app: practica-cicd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: practica-cicd
+  template:
+    metadata:
+      labels:
+        app: practica-cicd
+    spec:
+      containers:
+      - name: practica-cicd
+        image: guillermors28/dias-vividos-cli:latest
+        ports:
+        - containerPort: 5000
