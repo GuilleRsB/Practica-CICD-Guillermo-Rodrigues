@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: practica-cicd
-        image: tu-usuario/tu-imagen:latest  # Reemplázalo con tu imagen de Docker
+        image: guillermors28/dias-vividos-cli:latest  # Reemplázalo con tu imagen de Docker
         ports:
         - containerPort: 5000
         env:
