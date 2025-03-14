@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: practica-cicd-service
+  namespace: default         # Añadir el namespace aquí
 spec:
   selector:
     app: practica-cicd
@@ -9,5 +10,5 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 5000
-      nodePort: 30007
+      nodePort: 30007         # Si usas NodePort
   type: NodePort
