@@ -19,3 +19,8 @@ spec:
         image: guillermors28/dias-vividos-cli:latest
         ports:
         - containerPort: 5000
+ env:
+        - name: RUNNING_IN_K8S
+          value: "true"
+        - name: NOMBRE
+          value: "Guillermo"  # Puedes cambiarlo o hacerlo dinámico
