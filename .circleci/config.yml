@@ -136,7 +136,7 @@ jobs:
     machine: true  # Usa máquina completa
     environment:
       # Debes configurar estas variables en CircleCI (no exponer valores sensibles en el archivo)
-      ARGOCD_SERVER: "your-argocd-server:8080"   # Ejemplo: "argo.example.com:443" o "localhost:8080"
+      ARGOCD_SERVER: "localhost:8080"   # Ejemplo: "argo.example.com:443" o "localhost:8080"
       ARGOCD_USERNAME: $ARGOCD_USERNAME           # Configurado en CircleCI
       ARGOCD_PASSWORD: $ARGOCD_PASSWORD           # Configurado en CircleCI
     steps:
