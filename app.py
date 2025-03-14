@@ -1,57 +1,33 @@
 import os
 from datetime import datetime
 
-
-def dias_vividos(fecha_nacimiento):
-    """Calcula los días vividos desde la fecha de nacimiento hasta hoy.
-
-    Args:
-        fecha_nacimiento (str): Fecha en formato "YYYY-MM-DD".
-
-    Returns:
-        int or None: Número de días vividos o None si el formato es inválido.
-    """
+def calcular_dias_vividos(fecha_nacimiento):
+    """ Calcula los días vividos desde la fecha de nacimiento hasta hoy. """
     try:
-        fecha_nac = datetime.strptime(fecha_nacimiento, "%Y-%m-%d")
+        fecha_nac = datetime.strptime(fecha_nacimiento, "%Y-%m-%d")  # Formato YYYY-MM-DD
         hoy = datetime.today()
-        return (hoy - fecha_nac).days
+        dias_vividos = (hoy - fecha_nac).days
+        return dias_vividos
     except ValueError:
-        return None
-
+        return None  # Si el formato de la fecha es incorrecto
 
 def main():
-    """Función principal de la aplicación.
-
-    Si se ejecuta en Kubernetes, usa variables de entorno para obtener
-    el nombre y la fecha de nacimiento; en local, solicita estos datos al usuario.
-    """
+    # Detectar si la app está corriendo en Kubernetes o en local
     running_in_k8s = os.getenv("RUNNING_IN_K8S", "false").lower() == "true"
 
     if running_in_k8s:
-        nombre = os.getenv("NOMBRE", "Invitado")
-        fecha_nacimiento = os.getenv("FECHA_NACIMIENTO", "2000-01-01")
+        nombre = os.getenv("NOMBRE", "Invitado")  # Nombre desde variable de entorno
+        fecha_nacimiento = os.getenv("FECHA_NACIMIENTO", "2000-01-01")  # Fecha desde variable de entorno
     else:
-        try:
-            nombre = input("¿Cuál es tu nombre? ")
-            fecha_nacimiento = input(
-                "¿Cuál es tu fecha de nacimiento? (YYYY-MM-DD): "
-            )
-        except EOFError:
-            print("Error: No se pudo leer la entrada.")
-            return
+        nombre = input("¿Cuál es tu nombre? ")  # Pregunta solo si está en local
+        fecha_nacimiento = input("¿Cuál es tu fecha de nacimiento? (YYYY-MM-DD): ")
 
-    dias = dias_vividos(fecha_nacimiento)
+    dias_vividos = calcular_dias_vividos(fecha_nacimiento)
 
-    if dias is not None:
-        print(
-            f"Hola, {nombre}! Has vivido aproximadamente {dias} días."
-        )
+    if dias_vividos is not None:
+        print(f"Hola, {nombre}! Has vivido aproximadamente {dias_vividos} días.")
     else:
-        print(
-            "Error: La fecha ingresada no es válida. "
-            "Usa el formato YYYY-MM-DD."
-        )
-
+        print("Error: La fecha de nacimiento ingresada no es válida. Usa el formato YYYY-MM-DD.")
 
 if __name__ == "__main__":
     main()
