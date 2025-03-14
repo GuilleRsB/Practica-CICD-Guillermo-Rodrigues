@@ -1,52 +1,40 @@
 version: 2.1
 
 jobs:
-  # --------------------------
-  # Job: build
-  # Construye la imagen Docker de la aplicación.
-  # --------------------------
   build:
     docker:
-      - image: circleci/python:3.8  # Imagen base con Python 3.8
+      - image: circleci/python:3.8
     steps:
-      - checkout  # Clona el repositorio
-      - setup_remote_docker  # Habilita Docker remoto para construir imágenes
+      - checkout
+      - setup_remote_docker
       - run:
-          name: Instalar dependencias de la aplicación
+          name: Instalar dependencias
           command: pip install -r requirements.txt
       - run:
-          name: Construir la imagen Docker
+          name: Construir imagen Docker
           command: docker build -t dias-vividos-cli .
       - persist_to_workspace:
           root: .
           paths:
-            - .  # Persiste el workspace para los jobs posteriores
+            - .
 
-  # --------------------------
-  # Job: test
-  # Ejecuta las pruebas unitarias y genera el reporte de cobertura.
-  # --------------------------
   test:
     docker:
       - image: circleci/python:3.8
     steps:
       - checkout
       - run:
-          name: Instalar dependencias de prueba y herramientas
+          name: Instalar dependencias y herramientas de test
           command: |
             pip install -r requirements.txt
             pip install pytest pytest-cov
       - run:
-          name: Ejecutar pruebas con cobertura
+          name: Ejecutar tests con cobertura
           command: pytest --cov=. --cov-report xml
       - store_artifacts:
           path: coverage.xml
-          destination: coverage  # Guarda el reporte de cobertura
+          destination: coverage
 
-  # --------------------------
-  # Job: lint
-  # Ejecuta Flake8 para análisis de estilo y calidad de código.
-  # --------------------------
   lint:
     docker:
       - image: circleci/python:3.8
@@ -56,13 +44,9 @@ jobs:
           name: Instalar Flake8
           command: pip install flake8
       - run:
-          name: Ejecutar linting
+          name: Ejecutar lint
           command: flake8 .
 
-  # --------------------------
-  # Job: static_analysis
-  # Realiza análisis estático de seguridad del código usando Bandit.
-  # --------------------------
   static_analysis:
     docker:
       - image: circleci/python:3.8
@@ -75,14 +59,9 @@ jobs:
           name: Ejecutar análisis estático
           command: bandit -r .
 
-  # --------------------------
-  # Job: sonar_scan
-  # Ejecuta el análisis de código con SonarScanner en SonarCloud.
-  # Requiere definir las variables de entorno SONAR_HOST_URL, SONAR_LOGIN y SONAR_ORGANIZATION en CircleCI.
-  # --------------------------
   sonar_scan:
     docker:
-      - image: sonarsource/sonar-scanner-cli:latest  # Imagen oficial de SonarScanner
+      - image: sonarsource/sonar-scanner-cli:latest
     steps:
       - checkout
       - run:
@@ -95,24 +74,19 @@ jobs:
               -Dsonar.login=$SONAR_LOGIN \
               -Dsonar.organization=guillersb
 
-  # --------------------------
-  # Job: artifact
-  # Construye y publica la imagen Docker en Docker Hub, y guarda la imagen como artefacto.
-  # Este job se ejecuta solo en la rama main.
-  # --------------------------
   artifact:
     docker:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - setup_remote_docker  # Permite usar comandos Docker
+      - setup_remote_docker
       - run:
           name: Autenticarse en Docker Hub
           command: |
             echo "Autenticando en Docker Hub..."
             docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
       - run:
-          name: Generar y publicar artefacto (imagen Docker)
+          name: Construir y publicar imagen Docker
           command: |
             echo "Construyendo la imagen Docker..."
             docker build -t dias-vividos-cli .
@@ -124,54 +98,11 @@ jobs:
             docker save dias-vividos-cli > dias-vividos-cli.tar
       - store_artifacts:
           path: dias-vividos-cli.tar
-          destination: artifact  # Guarda el archivo tar de la imagen
-
-  # --------------------------
-  # Job: deploy
-  # Despliega la aplicación en Kubernetes usando Kind y ArgoCD.
-  # Este job se ejecuta solo en la rama main.
-  # Se utiliza "machine: true" para tener acceso completo al entorno.
-  # --------------------------
-  deploy:
-    machine: true  # Usa máquina completa
-    environment:
-      # Debes configurar estas variables en CircleCI (no exponer valores sensibles en el archivo)
-      ARGOCD_SERVER: "localhost:8080"   # Ejemplo: "argo.example.com:443" o "localhost:8080"
-      ARGOCD_USERNAME: $ARGOCD_USERNAME           # Configurado en CircleCI
-      ARGOCD_PASSWORD: $ARGOCD_PASSWORD           # Configurado en CircleCI
-    steps:
-      - checkout
-      - run:
-          name: Instalar Kind
-          command: |
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.17.0/kind-linux-amd64
-            chmod +x ./kind
-            sudo mv ./kind /usr/local/bin/kind
-      - run:
-          name: Instalar ArgoCD CLI
-          command: |
-            echo "Instalando ArgoCD CLI..."
-            curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-            chmod +x argocd
-            sudo mv argocd /usr/local/bin/
-            argocd version
-      - run:
-          name: Crear clúster Kind
-          command: kind create cluster --name dias-vividos-cluster
-      - run:
-          name: Desplegar con ArgoCD
-          command: |
-            # Inicia sesión en el servidor ArgoCD; se usa --insecure si se emplea certificado autofirmado
-            argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
-            # Sincroniza la aplicación (asegúrate de que el nombre coincida con el configurado en ArgoCD)
-            argocd app sync dias-vividos-cli --server $ARGOCD_SERVER --insecure
-      - run:
-          name: Eliminar clúster Kind (opcional)
-          command: kind delete cluster --name dias-vividos-cluster
+          destination: artifact
 
 workflows:
   version: 2
-  build_test_deploy:
+  build_test:
     jobs:
       - build
       - test:
@@ -189,15 +120,9 @@ workflows:
       - artifact:
           filters:
             branches:
-              only: main  # Se ejecuta solo en la rama main
+              only: main
           requires:
             - test
             - lint
             - static_analysis
             - sonar_scan
-      - deploy:
-          filters:
-            branches:
-              only: main  # Se ejecuta solo en la rama main
-          requires:
-            - artifact
