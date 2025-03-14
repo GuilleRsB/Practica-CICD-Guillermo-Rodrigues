@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: practica-cicd
-        image: guillermors28/dias-vividos-cli:latest  # Reemplázalo con tu imagen de Docker
+        image: guillermors28/dias-vividos-cli:latest
         ports:
         - containerPort: 5000
         env:
@@ -25,4 +25,4 @@ spec:
         - name: NOMBRE
           value: "Guillermo"
         - name: FECHA_NACIMIENTO
-          value: "1990-05-20"  # Cambia esto a una fecha válida
+          value: "1990-05-20"
