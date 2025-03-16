@@ -3,66 +3,45 @@ from flask import Flask, request, render_template_string
 app = Flask(__name__)
 
 def dias_vividos(edad: int) -> int:
-    """
-    Calcula la cantidad de días vividos, asumiendo 365 días por año.
-    """
+    """Calcula la cantidad de días vividos, asumiendo 365 días por año."""
     return edad * 365
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    if request.method == 'POST':
-        # Obtener datos del formulario
-        nombre = request.form.get('nombre', 'Usuario')
-        edad_str = request.form.get('edad', '30')
+# Una plantilla HTML simple
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Días Vividos</title>
+</head>
+<body>
+    <h1>Días Vividos</h1>
+    <form method="post">
+        <label for="nombre">¿Cuál es tu nombre?</label>
+        <input type="text" id="nombre" name="nombre" required><br><br>
+        <label for="edad">¿Cuántos años tienes?</label>
+        <input type="number" id="edad" name="edad" required><br><br>
+        <input type="submit" value="Calcular">
+    </form>
+    {% if resultado %}
+        <h2>{{ nombre }}, has vivido aproximadamente {{ resultado }} días.</h2>
+    {% endif %}
+</body>
+</html>
+"""
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+    resultado = None
+    nombre = ""
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "Usuario")
+        edad_str = request.form.get("edad", "30")
         try:
             edad = int(edad_str)
+            resultado = dias_vividos(edad)
         except ValueError:
-            return render_template_string('''
-                <!doctype html>
-                <html>
-                <head><title>Error</title></head>
-                <body>
-                    <p>Error: La edad debe ser un número entero.</p>
-                    <a href="/">Volver</a>
-                </body>
-                </html>
-            '''), 400
-
-        dias = dias_vividos(edad)
-        mensaje = f"{nombre}, has vivido aproximadamente {dias} días."
-        return render_template_string('''
-            <!doctype html>
-            <html>
-            <head>
-                <title>Resultado</title>
-            </head>
-            <body>
-                <h2>Resultado</h2>
-                <p>{{ mensaje }}</p>
-                <a href="/">Volver</a>
-            </body>
-            </html>
-        ''', mensaje=mensaje)
-    else:
-        # Mostrar el formulario
-        return render_template_string('''
-            <!doctype html>
-            <html>
-            <head>
-                <title>Calculadora de Días Vividos</title>
-            </head>
-            <body>
-                <h1>Calculadora de Días Vividos</h1>
-                <form method="post">
-                    <label for="nombre">Nombre:</label><br>
-                    <input type="text" id="nombre" name="nombre" placeholder="Ingresa tu nombre"><br><br>
-                    <label for="edad">Edad:</label><br>
-                    <input type="number" id="edad" name="edad" placeholder="Ingresa tu edad"><br><br>
-                    <input type="submit" value="Calcular">
-                </form>
-            </body>
-            </html>
-        ''')
+            resultado = "Error: La edad debe ser un número entero."
+    return render_template_string(HTML_TEMPLATE, resultado=resultado, nombre=nombre)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)
