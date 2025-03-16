@@ -1,9 +1,23 @@
 version: 2.1
 
-jobs:
-  build:
+executors:
+  docker-executor:
     docker:
       - image: circleci/python:3.8
+  snyk-executor:
+    docker:
+      - image: snyk/snyk:latest
+  sonar-executor:
+    docker:
+      - image: sonarsource/sonar-scanner-cli:latest
+
+jobs:
+  # --------------------------
+  # Job: build
+  # Construye la imagen Docker de la aplicación.
+  # --------------------------
+  build:
+    executor: docker-executor
     steps:
       - checkout
       - setup_remote_docker
@@ -18,9 +32,12 @@ jobs:
           paths:
             - .
 
+  # --------------------------
+  # Job: test
+  # Ejecuta los tests unitarios y genera reporte de cobertura.
+  # --------------------------
   test:
-    docker:
-      - image: circleci/python:3.8
+    executor: docker-executor
     steps:
       - checkout
       - run:
@@ -35,9 +52,12 @@ jobs:
           path: coverage.xml
           destination: coverage
 
+  # --------------------------
+  # Job: lint
+  # Análisis de calidad de código con Flake8.
+  # --------------------------
   lint:
-    docker:
-      - image: circleci/python:3.8
+    executor: docker-executor
     steps:
       - checkout
       - run:
@@ -47,9 +67,12 @@ jobs:
           name: Ejecutar lint
           command: flake8 .
 
+  # --------------------------
+  # Job: static_analysis
+  # Análisis estático de seguridad con Bandit.
+  # --------------------------
   static_analysis:
-    docker:
-      - image: circleci/python:3.8
+    executor: docker-executor
     steps:
       - checkout
       - run:
@@ -59,9 +82,30 @@ jobs:
           name: Ejecutar análisis estático
           command: bandit -r .
 
+  # --------------------------
+  # Job: vulnerability_scan
+  # Análisis de vulnerabilidades con Snyk.
+  # --------------------------
+  vulnerability_scan:
+    executor: snyk-executor
+    steps:
+      - checkout
+      - run:
+          name: Instalar dependencias de seguridad
+          command: |
+            pip install -r requirements.txt
+      - run:
+          name: Ejecutar análisis de vulnerabilidades con Snyk
+          command: snyk test --all-projects
+          environment:
+            SNYK_TOKEN: $SNYK_TOKEN
+
+  # --------------------------
+  # Job: sonar_scan
+  # Análisis de código con SonarScanner en SonarCloud.
+  # --------------------------
   sonar_scan:
-    docker:
-      - image: sonarsource/sonar-scanner-cli:latest
+    executor: sonar-executor
     steps:
       - checkout
       - run:
@@ -74,35 +118,61 @@ jobs:
               -Dsonar.login=$SONAR_LOGIN \
               -Dsonar.organization=guillersb
 
+  # --------------------------
+  # Job: artifact
+  # Construye y publica la imagen Docker en Docker Hub.
+  # --------------------------
   artifact:
-    docker:
-      - image: circleci/python:3.8
+    executor: docker-executor
     steps:
       - checkout
       - setup_remote_docker
       - run:
           name: Autenticarse en Docker Hub
-          command: |
-            echo "Autenticando en Docker Hub..."
-            docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+          command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
       - run:
           name: Construir y publicar imagen Docker
           command: |
-            echo "Construyendo la imagen Docker..."
             docker build -t dias-vividos-cli .
-            echo "Etiquetando la imagen..."
             docker tag dias-vividos-cli $DOCKERHUB_USERNAME/dias-vividos-cli:latest
-            echo "Publicando la imagen en Docker Hub..."
             docker push $DOCKERHUB_USERNAME/dias-vividos-cli:latest
-            echo "Guardando la imagen en un archivo tar..."
             docker save dias-vividos-cli > dias-vividos-cli.tar
       - store_artifacts:
           path: dias-vividos-cli.tar
           destination: artifact
 
+  # --------------------------
+  # Job: deploy
+  # Despliega la aplicación en Kubernetes usando ArgoCD.
+  # --------------------------
+  deploy:
+    machine: true  # Necesario para correr ArgoCD CLI
+    steps:
+      - checkout
+      - run:
+          name: Instalar ArgoCD CLI
+          command: |
+            curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+            chmod +x argocd
+            sudo mv argocd /usr/local/bin/argocd
+            argocd version
+      - run:
+          name: Autenticarse en ArgoCD
+          command: argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+      - run:
+          name: Sincronizar aplicación en ArgoCD
+          command: argocd app sync dias-vividos-cli
+      - run:
+          name: Eliminar clúster kind (opcional)
+          command: kind delete cluster --name dias-vividos-cluster
+
+# --------------------------
+# Workflows
+# Define la secuencia en que se ejecutan los jobs.
+# --------------------------
 workflows:
   version: 2
-  build_test:
+  build_test_deploy:
     jobs:
       - build
       - test:
@@ -112,6 +182,9 @@ workflows:
           requires:
             - build
       - static_analysis:
+          requires:
+            - build
+      - vulnerability_scan:
           requires:
             - build
       - sonar_scan:
@@ -126,3 +199,10 @@ workflows:
             - lint
             - static_analysis
             - sonar_scan
+            - vulnerability_scan
+      - deploy:
+          filters:
+            branches:
+              only: main
+          requires:
+            - artifact
