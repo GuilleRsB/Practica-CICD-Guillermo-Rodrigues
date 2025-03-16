@@ -6,7 +6,7 @@ executors:
       - image: circleci/python:3.8
   snyk-executor:
     docker:
-      - image: snyk/snyk-cli:docker
+      - image: circleci/python:3.8
   sonar-executor:
     docker:
       - image: sonarsource/sonar-scanner-cli:latest
@@ -90,13 +90,17 @@ jobs:
     executor: snyk-executor
     steps:
       - checkout
-      - setup_remote_docker
       - run:
+          name: Instalar pip y dependencias
+          command: |
+            apt-get update && apt-get install -y python3-pip
+            pip install -r requirements.txt
+      -run:
+        name: Instalar Snyk CLI
+          command: npm install -g snyk
+      -run:
           name: Autenticar con Snyk
           command: snyk auth $SNYK_TOKEN
-      - run:
-          name: Instalar dependencias
-          command: pip install -r requirements.txt
       - run:
           name: Ejecutar análisis de vulnerabilidades con Snyk
           command: snyk test --all-projects
