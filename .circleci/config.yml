@@ -93,15 +93,15 @@ jobs:
       - run:
           name: Instalar Node.js y npm
           command: |
-            apt-get update && apt-get install -y nodejs npm
+            sudo apt-get update && sudo apt-get install -y nodejs npm
       - run:
           name: Instalar pip y dependencias
           command: |
-            apt-get update && apt-get install -y python3-pip
+            sudo apt-get update && sudo apt-get install -y python3-pip
             pip install -r requirements.txt
       - run:
           name: Instalar Snyk CLI
-          command: npm install -g snyk
+          command: sudo npm install -g snyk
       - run:
           name: Autenticar con Snyk
           command: snyk auth $SNYK_TOKEN
