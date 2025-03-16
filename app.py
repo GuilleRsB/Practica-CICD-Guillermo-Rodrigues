@@ -1,47 +1,47 @@
 from flask import Flask, request, render_template_string
+import os
 
 app = Flask(__name__)
 
 def dias_vividos(edad: int) -> int:
-    """Calcula la cantidad de días vividos, asumiendo 365 días por año."""
+    """
+    Calcula la cantidad de días vividos, asumiendo 365 días por año.
+    """
     return edad * 365
-
-# Una plantilla HTML simple
-HTML_TEMPLATE = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Días Vividos</title>
-</head>
-<body>
-    <h1>Días Vividos</h1>
-    <form method="post">
-        <label for="nombre">¿Cuál es tu nombre?</label>
-        <input type="text" id="nombre" name="nombre" required><br><br>
-        <label for="edad">¿Cuántos años tienes?</label>
-        <input type="number" id="edad" name="edad" required><br><br>
-        <input type="submit" value="Calcular">
-    </form>
-    {% if resultado %}
-        <h2>{{ nombre }}, has vivido aproximadamente {{ resultado }} días.</h2>
-    {% endif %}
-</body>
-</html>
-"""
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    resultado = None
-    nombre = ""
+    resultado = ""
     if request.method == "POST":
         nombre = request.form.get("nombre", "Usuario")
         edad_str = request.form.get("edad", "30")
         try:
             edad = int(edad_str)
-            resultado = dias_vividos(edad)
+            dias = dias_vividos(edad)
+            resultado = f"{nombre}, has vivido aproximadamente {dias} días."
         except ValueError:
             resultado = "Error: La edad debe ser un número entero."
-    return render_template_string(HTML_TEMPLATE, resultado=resultado, nombre=nombre)
+    return render_template_string("""
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Días Vividos</title>
+          </head>
+          <body>
+            <h1>Calcula los días vividos</h1>
+            <form method="post">
+              <label for="nombre">Nombre:</label>
+              <input type="text" name="nombre" id="nombre" required><br><br>
+              <label for="edad">Edad:</label>
+              <input type="number" name="edad" id="edad" required><br><br>
+              <input type="submit" value="Calcular">
+            </form>
+            <p>{{ resultado }}</p>
+          </body>
+        </html>
+    """, resultado=resultado)
 
 if __name__ == '__main__':
+    # Escucha en todas las interfaces, puerto 5000
     app.run(host="0.0.0.0", port=5000)

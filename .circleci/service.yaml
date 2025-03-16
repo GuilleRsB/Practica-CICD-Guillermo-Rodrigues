@@ -9,6 +9,6 @@ spec:
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 5000
-      nodePort: 30007  # Puerto accesible en el host
+      targetPort: 5000   # Asegúrate de apuntar al puerto 5000, donde Flask está escuchando
+      nodePort: 30007
   type: NodePort
