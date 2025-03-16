@@ -6,7 +6,7 @@ executors:
       - image: circleci/python:3.8
   snyk-executor:
     docker:
-      - image: snyk/snyk-cli:latest
+      - image: snyk/snyk-cli:docker
   sonar-executor:
     docker:
       - image: sonarsource/sonar-scanner-cli:latest
