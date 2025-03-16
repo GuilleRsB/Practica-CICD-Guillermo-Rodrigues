@@ -1,11 +1,18 @@
 from flask import Flask, request, render_template_string
 
+
 app = Flask(__name__)
 
 
 def dias_vividos(edad: int) -> int:
     """
     Calcula la cantidad de días vividos, asumiendo 365 días por año.
+
+    Args:
+        edad (int): La edad en años.
+
+    Returns:
+        int: El número aproximado de días vividos.
     """
     return edad * 365
 
@@ -24,24 +31,24 @@ def index():
             resultado = "Error: La edad debe ser un número entero."
     return render_template_string(
         """
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="utf-8">
-            <title>Días Vividos</title>
-          </head>
-          <body>
-            <h1>Calcula los días vividos</h1>
-            <form method="post">
-              <label for="nombre">Nombre:</label>
-              <input type="text" name="nombre" id="nombre" required><br><br>
-              <label for="edad">Edad:</label>
-              <input type="number" name="edad" id="edad" required><br><br>
-              <input type="submit" value="Calcular">
-            </form>
-            <p>{{ resultado }}</p>
-          </body>
-        </html>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Días Vividos</title>
+  </head>
+  <body>
+    <h1>Calcula los días vividos</h1>
+    <form method="post">
+      <label for="nombre">Nombre:</label>
+      <input type="text" name="nombre" id="nombre" required><br><br>
+      <label for="edad">Edad:</label>
+      <input type="number" name="edad" id="edad" required><br><br>
+      <input type="submit" value="Calcular">
+    </form>
+    <p>{{ resultado }}</p>
+  </body>
+</html>
         """,
         resultado=resultado,
     )
