@@ -3,3 +3,4 @@ pytest-cov
 flake8
 bandit
 setuptools>=70.0.0
+Flask==3.0.0

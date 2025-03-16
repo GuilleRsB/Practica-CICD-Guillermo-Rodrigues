@@ -3,8 +3,6 @@ kind: Service
 metadata:
   name: practica-cicd-service
   namespace: default
-  labels:
-    app: practica-cicd
 spec:
   selector:
     app: practica-cicd
@@ -12,4 +10,5 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 5000
-  type: LoadBalancer
+      nodePort: 30007  # Puerto accesible en el host
+  type: NodePort
