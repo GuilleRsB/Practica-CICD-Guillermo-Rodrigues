@@ -14,7 +14,7 @@ executors:
 jobs:
   # --------------------------
   # Job: build
-  # Construye la imagen Docker de la aplicación.
+  # Construcción de la imagen Docker.
   # --------------------------
   build:
     executor: docker-executor
@@ -34,7 +34,7 @@ jobs:
 
   # --------------------------
   # Job: test
-  # Ejecuta los tests unitarios y genera reporte de cobertura.
+  # Ejecución de pruebas unitarias y cobertura de código.
   # --------------------------
   test:
     executor: docker-executor
@@ -90,10 +90,10 @@ jobs:
     executor: snyk-executor
     steps:
       - checkout
+      - setup_remote_docker
       - run:
-          name: Instalar dependencias de seguridad
-          command: |
-            pip install -r requirements.txt
+          name: Instalar dependencias
+          command: pip install -r requirements.txt
       - run:
           name: Ejecutar análisis de vulnerabilidades con Snyk
           command: snyk test --all-projects
@@ -120,7 +120,7 @@ jobs:
 
   # --------------------------
   # Job: artifact
-  # Construye y publica la imagen Docker en Docker Hub.
+  # Construcción y publicación de la imagen Docker en Docker Hub.
   # --------------------------
   artifact:
     executor: docker-executor
@@ -143,10 +143,10 @@ jobs:
 
   # --------------------------
   # Job: deploy
-  # Despliega la aplicación en Kubernetes usando ArgoCD.
+  # Despliegue en Kubernetes con ArgoCD.
   # --------------------------
   deploy:
-    machine: true  # Necesario para correr ArgoCD CLI
+    machine: true
     steps:
       - checkout
       - run:
@@ -162,6 +162,9 @@ jobs:
       - run:
           name: Sincronizar aplicación en ArgoCD
           command: argocd app sync dias-vividos-cli
+      - run:
+          name: Verificar estado de la aplicación
+          command: argocd app get dias-vividos-cli
       - run:
           name: Eliminar clúster kind (opcional)
           command: kind delete cluster --name dias-vividos-cluster
