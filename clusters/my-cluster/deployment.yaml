@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: practica-cicd
-  namespace: default          # Asegúrate de que esté definido
+  namespace: default          # Se aplica en el namespace default
   labels:
     app: practica-cicd
 spec:
