@@ -108,6 +108,9 @@ jobs:
       - run:
           name: Ejecutar análisis de vulnerabilidades con Snyk
           command: snyk test --all-projects
+      - run:
+          name: Aplicar correcciones automáticas con Snyk
+          command: snyk fix || echo "No se pudieron aplicar correcciones automáticamente"
 
   # --------------------------
   # Job: sonar_scan
