@@ -96,7 +96,7 @@ jobs:
             apt-get update && apt-get install -y python3-pip
             pip install -r requirements.txt
       - run:
-        name: Instalar Snyk CLI
+          name: Instalar Snyk CLI
           command: npm install -g snyk
       - run:
           name: Autenticar con Snyk
