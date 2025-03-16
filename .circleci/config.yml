@@ -6,7 +6,7 @@ executors:
       - image: circleci/python:3.8
   snyk-executor:
     docker:
-      - image: snyk/snyk:latest
+      - image: snyk/snyk-cli:latest
   sonar-executor:
     docker:
       - image: sonarsource/sonar-scanner-cli:latest
@@ -86,19 +86,20 @@ jobs:
   # Job: vulnerability_scan
   # Análisis de vulnerabilidades con Snyk.
   # --------------------------
-  vulnerability_scan:
-    executor: snyk-executor
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Instalar dependencias
-          command: pip install -r requirements.txt
-      - run:
-          name: Ejecutar análisis de vulnerabilidades con Snyk
-          command: snyk test --all-projects
-          environment:
-            SNYK_TOKEN: $SNYK_TOKEN
+vulnerability_scan:
+  executor: snyk-executor
+  steps:
+    - checkout
+    - setup_remote_docker
+    - run:
+        name: Autenticar con Snyk
+        command: snyk auth $SNYK_TOKEN
+    - run:
+        name: Instalar dependencias
+        command: pip install -r requirements.txt
+    - run:
+        name: Ejecutar análisis de vulnerabilidades con Snyk
+        command: snyk test --all-projects
 
   # --------------------------
   # Job: sonar_scan
