@@ -178,13 +178,9 @@ jobs:
           name: Verificar estado de la aplicación
           command: argocd app get dias-vividos-cli
       - run:
-          name: Eliminar clúster kind (opcional)
+          name: (Opcional) Eliminar clúster kind
           command: kind delete cluster --name dias-vividos-cluster
 
-# --------------------------
-# Workflows
-# Define la secuencia en que se ejecutan los jobs.
-# --------------------------
 workflows:
   version: 2
   build_test_deploy:
