@@ -1,13 +1,14 @@
 from flask import Flask, request, render_template_string
-import os
 
 app = Flask(__name__)
+
 
 def dias_vividos(edad: int) -> int:
     """
     Calcula la cantidad de días vividos, asumiendo 365 días por año.
     """
     return edad * 365
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -21,7 +22,8 @@ def index():
             resultado = f"{nombre}, has vivido aproximadamente {dias} días."
         except ValueError:
             resultado = "Error: La edad debe ser un número entero."
-    return render_template_string("""
+    return render_template_string(
+        """
         <!DOCTYPE html>
         <html>
           <head>
@@ -40,8 +42,10 @@ def index():
             <p>{{ resultado }}</p>
           </body>
         </html>
-    """, resultado=resultado)
+        """,
+        resultado=resultado,
+    )
+
 
 if __name__ == '__main__':
-    # Escucha en todas las interfaces, puerto 5000
     app.run(host="0.0.0.0", port=5000)
