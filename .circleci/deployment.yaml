@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: practica-cicd
-  namespace: default          # Se aplica en el namespace default
+  namespace: default
   labels:
     app: practica-cicd
 spec:
@@ -21,9 +21,7 @@ spec:
         ports:
         - containerPort: 5000
         env:
-        - name: RUNNING_IN_K8S
-          value: "true"
         - name: NOMBRE
           value: "Guillermo"
-        - name: FECHA_NACIMIENTO
-          value: "1990-05-20"
+        - name: EDAD
+          value: "34"

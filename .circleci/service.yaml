@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: practica-cicd-service
+  namespace: default
+  labels:
+    app: practica-cicd
+spec:
+  selector:
+    app: practica-cicd
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: LoadBalancer
