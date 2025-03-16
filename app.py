@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template_string
-import time
 
 app = Flask(__name__)
 
@@ -55,6 +54,5 @@ def index():
 
 
 if __name__ == '__main__':
-    # Es importante que Flask escuche en todas las interfaces para que el Service
-    # de Kubernetes pueda enrutar las conexiones.
-    app.run(host="0.0.0.0", port=5000)  # nosec
+    # Permite a Kubernetes enrutar el tráfico: escucha en todas las interfaces.
+    app.run(host="0.0.0.0", port=5000)  # nosec: allow all interfaces
