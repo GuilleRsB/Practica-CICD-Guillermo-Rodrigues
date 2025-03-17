@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: practica-cicd-service
+  name: dias-vividos-cli-servic
   namespace: default
 spec:
   selector:
-    app: practica-cicd
+    app: dias-vividos-cli
   ports:
     - protocol: TCP
       port: 80
       targetPort: 5000   # Asegúrate de apuntar al puerto 5000, donde Flask está escuchando
-      nodePort: 30007
+      nodePort: 30080
   type: NodePort

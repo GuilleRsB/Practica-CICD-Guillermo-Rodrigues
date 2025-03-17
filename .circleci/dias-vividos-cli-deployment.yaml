@@ -1,27 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: practica-cicd
+  name: dias-vividos-cli
   namespace: default
   labels:
-    app: practica-cicd
+    app: dias-vividos-cli
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: practica-cicd
+      app: dias-vividos-cli
   template:
     metadata:
       labels:
-        app: practica-cicd
+        app: dias-vividos-cli
     spec:
       containers:
-      - name: practica-cicd
+      - name: dias-vividos-cli
         image: guillermors28/dias-vividos-cli:latest
         ports:
         - containerPort: 5000
-        env:
-        - name: NOMBRE
-          value: "Guillermo"
-        - name: EDAD
-          value: "34"
