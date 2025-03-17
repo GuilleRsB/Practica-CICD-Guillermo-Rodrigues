@@ -171,8 +171,7 @@ jobs:
       - run:
           name: Autenticarse en ArgoCD
           command: |
-            echo "Conectando a ARGOCD_SERVER=$ARGOCD_SERVER"
-            argocd login $ARGOCD_SERVER --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+            argocd login 127.0.0.1:52094 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
       - run:
           name: Sincronizar aplicación en ArgoCD
           command: argocd app sync dias-vividos-cli
