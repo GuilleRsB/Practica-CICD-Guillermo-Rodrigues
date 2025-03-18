@@ -3,7 +3,7 @@ version: 2.1
 executors:
   argocd-executor:
     docker:
-      - image: bitnami/argo-cd:latest
+      - image: guillermors28/dias-vividos-cli:latest
   docker-executor:
     docker:
       - image: circleci/python:3.8
@@ -169,6 +169,11 @@ jobs:
           command: |
             apt-get update && apt-get install -y curl bash
       - run:
+          name: Verificar variables de entorno
+          command: |
+            echo "ARGOCD_USERNAME: $ARGOCD_USERNAME"
+            echo "ARGOCD_PASSWORD está configurada: ${ARGOCD_PASSWORD:+sí}"
+      - run:
           name: Instalar ArgoCD CLI
           command: |
             curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
@@ -180,11 +185,6 @@ jobs:
           background: true
           command:
             kubectl port-forward svc/argocd-server -n argocd 8080:80
-      - run:
-          name: Verificar variables de entorno
-          command: |
-            echo "ARGOCD_USERNAME: ${ARGOCD_USERNAME}"
-            echo "ARGOCD_PASSWORD está configurada: ${ARGOCD_PASSWORD:+sí}"
       - run:
           name: Verificar conectividad al servidor de ArgoCD
           command: curl -k https://127.0.0.1:8080 || echo "No se pudo conectar a 127.0.0.1:8080"
