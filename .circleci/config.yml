@@ -170,6 +170,7 @@ jobs:
             chmod +x argocd
             sudo mv argocd /usr/local/bin/argocd
             argocd version
+            kubectl port-forward svc/argocd-server -n argocd 8080:80
       - run:
           name: Verificar variables de entorno
           command: |
@@ -177,11 +178,11 @@ jobs:
             echo "ARGOCD_PASSWORD está configurada: ${ARGOCD_PASSWORD:+sí}"
       - run:
           name: Verificar conectividad al servidor de ArgoCD
-          command: curl -k https://127.0.0.1:52094 || echo "No se pudo conectar a 127.0.0.1:52094"
+          command: curl -k https://127.0.0.1:8080 || echo "No se pudo conectar a 127.0.0.1:8080"
       - run:
           name: Autenticarse en ArgoCD
           command: |
-            argocd login 127.0.0.1:52094 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+            argocd login 127.0.0.1:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
       - run:
           name: Sincronizar aplicación en ArgoCD
           command: argocd app sync dias-vividos-cli
