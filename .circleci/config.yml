@@ -166,12 +166,16 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Instalar ArgoCD CLI y Puerto
+          name: Instalar ArgoCD CLI
           command: |
             curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
             chmod +x argocd
             sudo mv argocd /usr/local/bin/argocd
             argocd version
+      - run:
+          name: Habilitar port-forward
+          background: true
+          command:
             kubectl port-forward svc/argocd-server -n argocd 8080:80
       - run:
           name: Verificar variables de entorno
@@ -218,7 +222,9 @@ workflows:
       - artifact:
           filters:
             branches:
-              only: main
+              only: 
+                - main
+                - develop
           requires:
             - test
             - lint
@@ -228,6 +234,8 @@ workflows:
       - deploy:
           filters:
             branches:
-              only: main
+              only:
+                - main
+                - develop
           requires:
             - artifact
