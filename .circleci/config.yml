@@ -1,6 +1,9 @@
 version: 2.1
 
 executors:
+  argocd-executor:
+    docker:
+      - image: guillermors28/dias-vividos-cli:latest
   docker-executor:
     docker:
       - image: circleci/python:3.8
@@ -158,13 +161,12 @@ jobs:
   # Despliegue en Kubernetes con ArgoCD.
   # --------------------------
   deploy:
-    docker:
-      - image: guillermors28/dias-vividos-cli:latest
+    executor: argocd-executor
     machine: true
     steps:
       - checkout
       - run:
-          name: Instalar ArgoCD CLI
+          name: Instalar ArgoCD CLI y Puerto
           command: |
             curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
             chmod +x argocd
