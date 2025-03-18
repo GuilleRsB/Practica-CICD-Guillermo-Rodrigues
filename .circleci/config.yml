@@ -196,6 +196,9 @@ jobs:
       #      kubectl get all --namespace argocd
       #      curl -k https://127.0.0.1:80 || echo "No se pudo conectar a 127.0.0.1:80"
       - run:
+          name: Verificar clúster Kubernetes
+          command: kubectl cluster-info || echo "No hay clúster disponible"
+      - run:
           name: Autenticarse en ArgoCD
           command: |
             argocd login 127.0.0.1:80 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
