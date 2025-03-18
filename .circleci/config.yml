@@ -194,7 +194,7 @@ jobs:
           name: Verificar conectividad al servidor de ArgoCD
           command: |
             kubectl get all --namespace argocd
-            curl -k https://127.0.0.1:80 || echo "No se pudo conectar a 127.0.0.1:80"
+            # curl -k https://127.0.0.1:80 || echo "No se pudo conectar a 127.0.0.1:80"
       - run:
           name: Autenticarse en ArgoCD
           command: |
