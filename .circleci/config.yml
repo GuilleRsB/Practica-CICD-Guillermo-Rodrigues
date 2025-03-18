@@ -162,7 +162,6 @@ jobs:
   # --------------------------
   deploy:
     executor: argocd-executor
-    machine: true
     steps:
       - checkout
       - run:
