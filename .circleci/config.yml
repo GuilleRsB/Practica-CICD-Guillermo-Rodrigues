@@ -196,6 +196,13 @@ jobs:
       #      kubectl get all --namespace argocd
       #      curl -k https://127.0.0.1:80 || echo "No se pudo conectar a 127.0.0.1:80"
       - run:
+          name: Crear clúster Kubernetes con Kind
+          command: |
+            curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+            chmod +x ./kind
+            mv ./kind /usr/local/bin/kind
+            kind create cluster --name dias-vividos-cluster
+      - run:
           name: Verificar clúster Kubernetes
           command: kubectl cluster-info || echo "No hay clúster disponible"
       - run:
