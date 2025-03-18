@@ -159,7 +159,7 @@ jobs:
   # --------------------------
   deploy:
     docker:
-      - imagen: guillermors28/dias-vividos-cli:latest
+      - image: guillermors28/dias-vividos-cli:latest
     machine: true
     steps:
       - checkout
