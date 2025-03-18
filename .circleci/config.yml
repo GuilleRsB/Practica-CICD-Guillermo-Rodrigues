@@ -167,7 +167,7 @@ jobs:
       - run:
           name: Instalar dependencias (curl, bash, kubectl)
           command: |
-            apt-get update && apt-get install -y curl bash
+            sudo apt-get update && sudo apt-get install -y curl bash
       - run:
           name: Instalar ArgoCD CLI
           command: |
