@@ -167,13 +167,13 @@ jobs:
       - run:
           name: Instalar dependencias (curl, bash, kubectl)
           command: |
-            sudo apt-get update && sudo apt-get install -y curl bash
+            apt-get update && apt-get install -y curl bash
       - run:
           name: Instalar ArgoCD CLI
           command: |
             curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
             chmod +x argocd
-            sudo mv argocd /usr/local/bin/argocd
+            mv argocd /usr/local/bin/argocd
             argocd version
       - run:
           name: Habilitar port-forward
