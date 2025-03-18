@@ -177,8 +177,8 @@ jobs:
       - run:
           name: Verificar variables de entorno
           command: |
-            echo "ARGOCD_USERNAME: $ARGOCD_USERNAME"
-            echo "ARGOCD_PASSWORD está configurada: ${ARGOCD_PASSWORD:+sí}"
+            echo "ARGOCD_USERNAME: ${ARGOCD_USERNAME}"
+            echo "ARGOCD_PASSWORD está configurada: ${ARGOCD_PASSWORD}"
       - run:
           name: Instalar ArgoCD CLI
           command: |
