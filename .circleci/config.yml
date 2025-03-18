@@ -179,19 +179,19 @@ jobs:
             curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
             chmod +x argocd
             mv argocd /usr/local/bin/argocd
-            argocd version
       - run:
           name: Habilitar port-forward
           background: true
           command:
-            kubectl port-forward svc/argocd-server -n argocd 8080:80
+            kubectl port-forward svc/argocd-server -n argocd 52094:80
+            argocd version
       - run:
           name: Verificar conectividad al servidor de ArgoCD
-          command: curl -k https://127.0.0.1:8080 || echo "No se pudo conectar a 127.0.0.1:8080"
+          command: curl -k https://127.0.0.1:52094 || echo "No se pudo conectar a 127.0.0.1:52094"
       - run:
           name: Autenticarse en ArgoCD
           command: |
-            argocd login 127.0.0.1:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+            argocd login 127.0.0.1:52094 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
       - run:
           name: Sincronizar aplicación en ArgoCD
           command: argocd app sync dias-vividos-cli
