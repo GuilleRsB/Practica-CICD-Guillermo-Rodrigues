@@ -158,6 +158,8 @@ jobs:
   # Despliegue en Kubernetes con ArgoCD.
   # --------------------------
   deploy:
+    docker:
+      - imagen: guillermors28/dias-vividos-cli:latest
     machine: true
     steps:
       - checkout
