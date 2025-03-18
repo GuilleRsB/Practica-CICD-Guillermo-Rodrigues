@@ -164,6 +164,7 @@ jobs:
     executor: argocd-executor
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: Instalar dependencias (curl, bash, kubectl)
           command: |
