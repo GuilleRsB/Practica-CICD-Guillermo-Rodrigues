@@ -171,9 +171,9 @@ jobs:
       - run:
           name: Instalar ArgoCD CLI
           command: |
-            # curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-            # chmod +x argocd
-            # mv argocd /usr/local/bin/argocd
+            curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+            chmod +x argocd
+            mv argocd /usr/local/bin/argocd
             argocd version
       - run:
           name: Habilitar port-forward
