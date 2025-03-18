@@ -165,6 +165,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Instalar dependencias (curl, bash, kubectl)
+          command: |
+            apt-get update && apt-get install -y curl bash
+      - run:
           name: Instalar ArgoCD CLI
           command: |
             curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
