@@ -192,17 +192,17 @@ jobs:
             chmod +x argocd
             sudo mv argocd /usr/local/bin/argocd
       - run:
-          name: Verificar conectividad al servidor de ArgoCD
-          command: |
-            kubectl get all --namespace argocd
-            curl -k https://127.0.0.1:52094 || echo "No se pudo conectar a 127.0.0.1:52094"
-      - run:
           name: Crear clúster Kubernetes con Kind
           command: |
             curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
             kind create cluster --name dias-vividos-cluster
+      - run:
+          name: Verificar conectividad al servidor de ArgoCD
+          command: |
+            kubectl get all --namespace argocd
+            curl -k https://127.0.0.1:52094 || echo "No se pudo conectar a 127.0.0.1:52094"
       - run:
           name: Habilitar port-forward
           background: true
