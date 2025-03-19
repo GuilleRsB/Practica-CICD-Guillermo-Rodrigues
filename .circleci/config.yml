@@ -175,6 +175,12 @@ jobs:
           command: |
             sudo apt-get update && sudo apt-get install -y curl bash
       - run:
+          name: Instalar kubectl
+          command: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            chmod +x kubectl
+            mv kubectl /usr/local/bin/
+      - run:
           name: Crear clúster Kubernetes con Kind
           command: |
             sudo apt-get install -y ca-certificates curl gnupg lsb-release
