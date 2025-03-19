@@ -199,6 +199,8 @@ jobs:
             sudo mv ./kind /usr/local/bin/kind
             kind create cluster --name dias-vividos-cluster
       - run:
+            docker build -t guillermors28/dias-vividos-cli:latest
+      - run:
           name: Verificar conectividad al servidor de ArgoCD
           command: |
             kubectl get all --namespace argocd
