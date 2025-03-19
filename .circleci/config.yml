@@ -166,6 +166,11 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          name: Verificar Docker
+          command: |
+            docker --version || echo "Docker no está disponible"
+            docker info || echo "No se pudo acceder a Docker"
+      - run:
           name: Instalar dependencias (curl, bash, kubectl)
           command: |
             sudo apt-get update && sudo apt-get install -y curl bash
