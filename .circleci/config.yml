@@ -198,9 +198,9 @@ jobs:
             chmod +x argocd
             sudo mv argocd /usr/local/bin/argocd
       - run:
-    name: Habilitar port-forward para ArgoCD
-    background: true
-    command: kubectl port-forward svc/argocd-server -n argocd 52094:80 &
+          name: Habilitar port-forward para ArgoCD
+          background: true
+          command: kubectl port-forward svc/argocd-server -n argocd 52094:80 &
       - run:
           name: Esperar a que el puerto esté disponible
           command: sleep 120 # Esperar 5 segundos antes de intentar conectarse
