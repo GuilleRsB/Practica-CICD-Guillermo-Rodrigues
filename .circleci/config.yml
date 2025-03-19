@@ -161,75 +161,11 @@ jobs:
   # Despliegue en Kubernetes con ArgoCD.
   # --------------------------
   deploy:
-    executor: docker-executor
+    executor: argocd-executor
     steps:
       - checkout
       - setup_remote_docker
-      - run:
-          name: Verificar Docker
-          command: |
-            docker --version || echo "Docker no está disponible"
-            docker info || echo "No se pudo acceder a Docker"
-      - run:
-          name: Instalar dependencias (curl, bash, kubectl)
-          command: |
-            sudo apt-get update && sudo apt-get install -y curl bash
-      #- run:
-      #    name: Instalar kubectl
-      #    command: |
-      #      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-      #      chmod +x kubectl
-      #      mv kubectl /usr/local/bin/
-      - run:
-          name: Verificar variables de entorno
-          command: |
-            echo "ARGOCD_USERNAME: ${ARGOCD_USERNAME}"
-            echo "ARGOCD_PASSWORD está configurada: ${ARGOCD_PASSWORD}"
-      - run:
-          name: Instalar ArgoCD CLI
-          command: |
-            curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-            chmod +x argocd
-            sudo mv argocd /usr/local/bin/argocd
-      - run:
-          name: Crear clúster Kubernetes con Kind
-          command: |
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
-            chmod +x ./kind
-            sudo mv ./kind /usr/local/bin/kind
-            kind create cluster --name dias-vividos-cluster
-      - run:
-            docker build -t guillermors28/dias-vividos-cli:latest
-      - run:
-          name: Verificar conectividad al servidor de ArgoCD
-          command: |
-            kubectl get all --namespace argocd
-            curl -k https://127.0.0.1:52094 || echo "No se pudo conectar a 127.0.0.1:52094"
-      - run:
-          name: Habilitar port-forward
-          background: true
-          command: |
-            kubectl port-forward svc/argocd-server -n argocd 52094:80
-      - run:
-          name: Esperar a que el puerto esté disponible
-          command: sleep 120 # Esperar 5 segundos antes de intentar conectarse
-      - run:
-          name: Verificar clúster Kubernetes
-          command: kubectl cluster-info || echo "No hay clúster disponible"
-      - run:
-          name: Autenticarse en ArgoCD
-          command: |
-            argocd login 127.0.0.1:52094 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
-      - run:
-          name: Sincronizar aplicación en ArgoCD
-          command: argocd app sync dias-vividos-cli
-      - run:
-          name: Verificar estado de la aplicación
-          command: argocd app get dias-vividos-cli
-      - run:
-          name: (Opcional) Eliminar clúster kind
-          command: kind delete cluster --name dias-vividos-cluster
-
+      
 workflows:
   version: 2
   build_test_deploy:
@@ -255,7 +191,6 @@ workflows:
             branches:
               only: 
                 - main
-                - develop
           requires:
             - test
             - lint
@@ -267,6 +202,5 @@ workflows:
             branches:
               only:
                 - main
-                - develop
           requires:
             - artifact
