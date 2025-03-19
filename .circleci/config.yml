@@ -3,7 +3,7 @@ version: 2.1
 executors:
   argocd-executor:
     docker:
-    - image: bitnami/kubectl:latest
+    - image: bitnami/argo-cd:latest
   docker-executor:
     docker:
       - image: circleci/python:3.8
