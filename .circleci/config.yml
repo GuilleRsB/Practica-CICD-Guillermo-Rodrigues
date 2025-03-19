@@ -185,6 +185,12 @@ jobs:
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
             kind create cluster --name dias-vividos-cluster
+      - run:
+          name: Instalar ArgoCD CLI
+          command: |
+            curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+            chmod +x argocd
+            sudo mv argocd /usr/local/bin/argocd
 workflows:
   version: 2
   build_test_deploy:
