@@ -190,7 +190,7 @@ jobs:
           command: |
             curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
             chmod +x argocd
-            mv argocd /usr/local/bin/argocd
+            sudo mv argocd /usr/local/bin/argocd
       - run:
           name: Habilitar port-forward
           background: true
@@ -198,7 +198,7 @@ jobs:
             kubectl port-forward svc/argocd-server -n argocd 52094:80
       - run:
           name: Esperar a que el puerto esté disponible
-          command: sleep 5 # Esperar 5 segundos antes de intentar conectarse
+          command: sleep 120 # Esperar 5 segundos antes de intentar conectarse
       #- run:
       #    name: Verificar conectividad al servidor de ArgoCD
       #    command: |
