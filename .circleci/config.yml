@@ -179,7 +179,7 @@ jobs:
           command: |
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
             chmod +x kubectl
-            mv kubectl /usr/local/bin/
+            sudo mv kubectl /usr/local/bin/
       - run:
           name: Crear clúster Kubernetes con Kind
           command: |
@@ -201,7 +201,8 @@ jobs:
           name: Habilitar port-forward
           background: true
           command: |
-            kubectl port-forward svc/argocd-server -n argocd 52094:80
+            background: true
+            kubectl port-forward svc/argocd-server -n argocd 52094:80 &
       - run:
           name: Esperar a que el puerto esté disponible
           command: sleep 120 # Esperar 5 segundos antes de intentar conectarse
