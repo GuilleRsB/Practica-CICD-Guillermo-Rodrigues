@@ -1,12 +1,12 @@
 version: 2.1
 
 executors:
-  #argocd-executor:
-  # docker:
-  #  - image: guillermors28/dias-vividos-cli:latest
+  argocd-executor:
+    docker:
+    - image: bitnami/kubectl:latest
   docker-executor:
     docker:
-      - image: bitnami/argo-cd:latest
+      - image: circleci/python:3.8
   snyk-executor:
     docker:
       - image: circleci/python:3.8
@@ -174,12 +174,12 @@ jobs:
           name: Instalar dependencias (curl, bash, kubectl)
           command: |
             sudo apt-get update && sudo apt-get install -y curl bash
-      - run:
-          name: Instalar kubectl
-          command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            mv kubectl /usr/local/bin/
+      #- run:
+      #    name: Instalar kubectl
+      #    command: |
+      #      curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      #      chmod +x kubectl
+      #      mv kubectl /usr/local/bin/
       - run:
           name: Verificar variables de entorno
           command: |
