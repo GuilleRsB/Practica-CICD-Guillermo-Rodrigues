@@ -6,7 +6,7 @@ executors:
   #  - image: guillermors28/dias-vividos-cli:latest
   docker-executor:
     docker:
-      - image: circleci/python:3.8
+      - image: bitnami/argo-cd:latest
   snyk-executor:
     docker:
       - image: circleci/python:3.8
