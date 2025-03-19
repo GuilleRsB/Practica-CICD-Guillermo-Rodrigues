@@ -1,9 +1,9 @@
 version: 2.1
 
 executors:
-  argocd-executor:
-    docker:
-    - image: bitnami/argo-cd:latest
+#  argocd-executor:
+#    docker:
+#    - image: bitnami/argo-cd:latest
   docker-executor:
     docker:
       - image: circleci/python:3.8
@@ -161,7 +161,7 @@ jobs:
   # Despliegue en Kubernetes con ArgoCD.
   # --------------------------
   deploy:
-    executor: argocd-executor
+    executor: docker-executor
     steps:
       - checkout
       - setup_remote_docker
