@@ -203,6 +203,12 @@ jobs:
           command: |
             kubectl port-forward svc/argocd-server -n argocd 8080:80
       - run:
+          name: Esperar a que el puerto esté disponible
+          command: sleep 10
+      - run:
+          name: Verificar conectividad al servidor de ArgoCD
+          command: curl -k https://127.0.0.1:8080 || echo "No se pudo conectar a 127.0.0.1:8080"
+      - run:
           name: Autenticarse en ArgoCD
           command: |
             argocd login 127.0.0.1:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
