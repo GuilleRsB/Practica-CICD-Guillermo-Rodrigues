@@ -191,6 +191,7 @@ jobs:
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
             kind create cluster --name dias-vividos-cluster
+            kubectl cluster-info
       - run:
           name: Instalar ArgoCD CLI
           command: |
@@ -226,10 +227,15 @@ jobs:
       - run:
           name: Autenticarse en ArgoCD
           command: |
+            echo "Esperando a que ArgoCD esté listo..."
+            kubectl wait --for=condition=available --timeout=120s deployment/argocd-server -n argocd
             argocd login argocd.local --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
       - run:
               name: Sincronizar aplicación
               command: argocd app sync dias-vividos-cli
+      - run:
+          name: Verificar estado de la app
+          command: argocd app get dias-vividos-cli
       #- run:
       #    name: Habilitar port-forward para ArgoCD
       #    background: true
