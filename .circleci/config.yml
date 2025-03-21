@@ -150,9 +150,9 @@ jobs:
           name: Añadir dominio a /etc/hosts
           command: |
             echo "127.0.0.1 argocd.local" | sudo tee -a /etc/hosts
-      - run:
-          name: Esperar a que ArgoCD esté accesible
-          command: sleep 20
+      #- run:
+      #    name: Esperar a que ArgoCD esté accesible
+      #    command: sleep 20
       #- run:
       #    name: Habilitar port-forward a ArgoCD
       #    background: true
@@ -162,9 +162,13 @@ jobs:
       #    name: Esperar a que el puerto esté disponible
       #    command: sleep 20
       - run:
+          name: Esperar a que el servidor ArgoCD esté listo
+          command: |
+            kubectl rollout status deployment argocd-server -n argocd --timeout=120s
+      - run:
           name: Verificar conexión a ArgoCD
           command: |
-            curl -k https://127.0.0.1:8080 || echo "Fallo de conexión"
+            curl -k https://argocd.local || echo "Fallo de conexión"
       #- run:
       #    name: Esperar a que el puerto esté disponible
       #    command: sleep 15
