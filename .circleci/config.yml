@@ -124,6 +124,10 @@ jobs:
           command: |
             kind create cluster --name dias-vividos-cluster --config kind-config.yaml
       - run:
+          name: Exportar KUBECONFIG
+          command: |
+            export KUBECONFIG="$(kind get kubeconfig-path --name=dias-vividos-cluster)"
+      - run:
           name: Esperar clúster
           command: |
             for i in {1..20}; do kubectl cluster-info && break || sleep 10; done
