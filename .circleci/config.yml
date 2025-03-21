@@ -191,7 +191,21 @@ jobs:
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
             kind create cluster --name dias-vividos-cluster
-            kubectl cluster-info
+      - run:
+          name: Esperar a que el clúster Kind esté listo
+          command: |
+            echo "Esperando a que el clúster Kind esté accesible..."
+            for i in {1..20}; do
+              kubectl cluster-info && break || sleep 10
+            done
+      - run:
+          name: Usar contexto de Kind
+          command: |
+            kubectl config use-context kind-dias-vividos-cluster
+      - run:
+          name: Información del clúster
+          command: |
+            kubectl cluster-info dump
       - run:
           name: Instalar ArgoCD CLI
           command: |
