@@ -183,10 +183,10 @@ jobs:
       - run:
           name: Crear clúster Kubernetes con Kind
           command: |
-            sudo apt-get install -y ca-certificates curl gnupg lsb-release
-            sudo mkdir -p /etc/apt/keyrings
-            curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+            #sudo apt-get install -y ca-certificates curl gnupg lsb-release
+            #sudo mkdir -p /etc/apt/keyrings
+            #curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            #echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
             curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.14.0/kind-linux-amd64
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
@@ -206,6 +206,12 @@ jobs:
           name: Información del clúster
           command: |
             kubectl cluster-info dump
+      - run:
+          name: Instalar ArgoCD
+          command: |
+            kubectl create namespace argocd
+            kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+            sleep 60  # Esperar a que ArgoCD levante
       - run:
           name: Instalar ArgoCD CLI
           command: |
@@ -227,6 +233,26 @@ jobs:
           command: |
             echo "127.0.0.1 argocd.local" | sudo tee -a /etc/hosts
             cat /etc/hosts
+      - run:
+          name: Crear aplicación si no existe
+          command: |
+            argocd app create dias-vividos-cli \
+              --repo https://github.com/GuilleRsB/Practica-CICD-Guillermo-Rodrigues.git \
+              --path .circleci \
+              --dest-server https://kubernetes.default.svc \
+              --dest-namespace default || echo "Ya existe"
+      - run:
+          name: Port forward a ArgoCD
+          background: true
+          command: |
+            kubectl port-forward svc/argocd-server -n argocd 8080:443
+      - run:
+          name: Esperar a que el puerto esté listo
+          command: sleep 10
+      - run:
+          name: Login en ArgoCD
+          command: |
+            argocd login 127.0.0.1:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
       # - run:
       #    name: Habilitar port-forward a ArgoCD
       #    background: true
@@ -238,12 +264,12 @@ jobs:
       #- run:
       #    name: Verificar conectividad al servidor de ArgoCD
       #    command: curl -k https://127.0.0.1:8080 || echo "No se pudo conectar a 127.0.0.1:8080"
-      - run:
-          name: Autenticarse en ArgoCD
-          command: |
-            echo "Esperando a que ArgoCD esté listo..."
-            kubectl wait --for=condition=available --timeout=120s deployment/argocd-server -n argocd
-            argocd login argocd.local --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+      #- run:
+      #    name: Autenticarse en ArgoCD
+      #    command: |
+      #     echo "Esperando a que ArgoCD esté listo..."
+      #      kubectl wait --for=condition=available --timeout=120s deployment/argocd-server -n argocd
+      #      argocd login argocd.local --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
       - run:
               name: Sincronizar aplicación
               command: argocd app sync dias-vividos-cli
