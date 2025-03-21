@@ -92,13 +92,7 @@ jobs:
       - run:
           name: Ejecutar SonarScanner
           command: |
-            sonar-scanner \
-              -Dsonar.projectKey=GuilleRsB_Practica-CICD-Guillermo-Rodrigues \
-              -Dsonar.sources=. \
-              -Dsonar.host.url=$SONAR_HOST_URL \
-              -Dsonar.login=$SONAR_LOGIN \
-              -Dsonar.organization=guillersb \
-              -Dsonar.python.coverage.reportPaths=coverage.xml
+            sonar-scanner               -Dsonar.projectKey=GuilleRsB_Practica-CICD-Guillermo-Rodrigues               -Dsonar.sources=.               -Dsonar.host.url=$SONAR_HOST_URL               -Dsonar.login=$SONAR_LOGIN               -Dsonar.organization=guillersb               -Dsonar.python.coverage.reportPaths=coverage.xml
 
   artifact:
     executor: docker-executor
