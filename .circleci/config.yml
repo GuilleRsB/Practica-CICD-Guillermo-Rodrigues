@@ -139,6 +139,18 @@ jobs:
               sleep 10
             done
       - run:
+          name: Esperar a que el webhook de Ingress esté listo
+          command: |
+            echo "Esperando al webhook admission controller de Ingress..."
+            kubectl wait --namespace ingress-nginx \
+              --for=condition=available deployment/ingress-nginx-controller \
+              --timeout=180s
+      - run:
+          name: Verificar endpoint de webhook
+          command: |
+            kubectl get svc -n ingress-nginx
+            kubectl get endpoints ingress-nginx-controller-admission -n ingress-nginx
+      - run:
           name: Instalar ArgoCD
           command: |
             kubectl create namespace argocd || true
