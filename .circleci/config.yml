@@ -140,6 +140,13 @@ jobs:
                 sleep 10
               done
       - run:
+          name: Esperar a que el Ingress Controller esté disponible
+          command: |
+            kubectl wait --namespace ingress-nginx \
+              --for=condition=ready pod \
+              --selector=app.kubernetes.io/component=controller \
+              --timeout=180s
+      - run:
           name: ⚠️ Eliminar webhook temporalmente para evitar errores
           command: |
             echo "Eliminando el webhook para evitar fallo en apply de Ingress..."
@@ -199,7 +206,7 @@ jobs:
       - run:
           name: Login y sincronizar
           command: |
-            argocd login argocd.local --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+            argocd login argocd.local:80 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
             argocd app sync dias-vividos-cli
             argocd app get dias-vividos-cli
       - run:
