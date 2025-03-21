@@ -89,9 +89,9 @@ jobs:
     executor: sonar-executor
     steps:
       - checkout
-      - run:
-          name: Verificar archivo coverage.xml
-          command: ls -l coverage.xml
+      #- run:
+      #    name: Verificar archivo coverage.xml
+      #    command: ls -l coverage.xml
       - run:
           name: Ejecutar SonarScanner
           command: |
