@@ -192,6 +192,9 @@ jobs:
           command: |
             kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0
       - run:
+          name: Esperar que el puerto esté disponible
+          command: sleep 20
+      - run:
           name: Esperar a que ArgoCD esté accesible por port-forward
           command: |
             for i in {1..10}; do
