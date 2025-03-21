@@ -254,6 +254,10 @@ workflows:
             - static_analysis
             - sonar_scan
             - vulnerability_scan
+          filters:
+            branches:
+              only:
+                - main
       - deploy:
           requires:
             - artifact
