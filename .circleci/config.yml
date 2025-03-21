@@ -71,6 +71,11 @@ jobs:
           command: |
             sudo apt-get update && sudo apt-get install -y nodejs npm
       - run:
+          name: Instalar pip y dependencias
+          command: |
+            sudo apt-get install -y python3-pip
+            pip install -r requirements.txt
+      - run:
           name: Instalar Snyk CLI
           command: sudo npm install -g snyk
       - run:
