@@ -151,6 +151,13 @@ jobs:
           name: Esperar a que el puerto esté disponible
           command: sleep 15
       - run:
+          name: Verificar conexión a ArgoCD
+          command: |
+            curl -k https://127.0.0.1:8080 || echo "Fallo de conexión"
+      - run:
+          name: Esperar a que el puerto esté disponible
+          command: sleep 15
+      - run:
           name: Esperar ingreso
           command: sleep 20
       - run:
@@ -159,6 +166,9 @@ jobs:
             argocd login 127.0.0.1:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
             argocd app sync dias-vividos-cli
             argocd app get dias-vividos-cli
+      - run:
+          name: Verificar estado de la app
+          command: argocd app get dias-vividos-cli
 
 workflows:
   version: 2
