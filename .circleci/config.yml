@@ -191,7 +191,13 @@ jobs:
             curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.14.0/kind-linux-amd64
             chmod +x ./kind
             sudo mv ./kind /usr/local/bin/kind
-            kind create cluster --name dias-vividos-cluster
+      - run:
+          name: Crear clúster Kind y configurar kubeconfig
+          command: |
+            kind create cluster --name dias-vividos-cluster --kubeconfig kind-kubeconfig.yaml
+            mkdir -p $HOME/.kube
+            cp kind-kubeconfig.yaml $HOME/.kube/config
+            export KUBECONFIG=$HOME/.kube/config
       - run:
           name: Esperar a que el clúster Kind esté listo
           command: |
@@ -200,8 +206,15 @@ jobs:
               kubectl cluster-info && break || sleep 10
             done
       - run:
+          name: Verificar que Kind responde
+          command: |
+            export KUBECONFIG=$HOME/.kube/config
+            kubectl cluster-info
+            kubectl get nodes
+      - run:
           name: Usar contexto de Kind
           command: |
+            export KUBECONFIG=$HOME/.kube/config
             kubectl config use-context kind-dias-vividos-cluster
       - run:
           name: Información del clúster
