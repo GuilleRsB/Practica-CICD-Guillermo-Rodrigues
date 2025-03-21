@@ -122,7 +122,7 @@ jobs:
       - run:
           name: Crear clúster Kind
           command: |
-            kind create cluster --name dias-vividos-cluster
+            kind create cluster --name dias-vividos-cluster --config kind-config.yaml
       - run:
           name: Esperar clúster
           command: |
