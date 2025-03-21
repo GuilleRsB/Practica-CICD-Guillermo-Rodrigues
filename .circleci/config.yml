@@ -156,7 +156,7 @@ jobs:
       - run:
           name: Login y sincronizar
           command: |
-            argocd login argocd.local --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+            argocd login 127.0.0.1:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
             argocd app sync dias-vividos-cli
             argocd app get dias-vividos-cli
 
