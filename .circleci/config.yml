@@ -198,13 +198,11 @@ jobs:
             chmod +x argocd
             sudo mv argocd /usr/local/bin/argocd
       - run:
-          name: Aplicar ingress de ArgoCD
-          command: kubectl apply -f .circleci/argocd-ingress.yaml
-      - run:
           name: Aplicar manifiestos de ArgoCD
           command: |
             kubectl apply -n argocd -f .circleci/argocd-deployment.yaml
             kubectl apply -n argocd -f .circleci/argocd-service.yaml
+            kubectl apply -f .circleci/application.yaml -n argocd
             kubectl apply -n argocd -f .circleci/argocd-ingress.yaml
       - run:
           name: Esperar a que ArgoCD esté disponible
