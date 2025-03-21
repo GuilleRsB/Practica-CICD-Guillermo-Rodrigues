@@ -144,11 +144,6 @@ jobs:
           command: |
             echo "Eliminando el webhook para evitar fallo en apply de Ingress..."
             kubectl delete validatingwebhookconfiguration ingress-nginx-admission || true
-      - run:
-          name: Aplicar manifiestos ArgoCD + Ingress
-          command: |
-            kubectl apply -f .circleci/argocd-ingress.yaml
-            kubectl apply -f .circleci/application.yaml
       #- run:
       #    name: Esperar a que el webhook de Ingress esté listo
       #    command: |
