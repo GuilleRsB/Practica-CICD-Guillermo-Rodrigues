@@ -126,7 +126,8 @@ jobs:
       - run:
           name: Exportar KUBECONFIG
           command: |
-            export KUBECONFIG="$(kind get kubeconfig-path --name=dias-vividos-cluster)"
+            mkdir -p ~/.kube
+            kind get kubeconfig --name dias-vividos-cluster > ~/.kube/config
       - run:
           name: Esperar clúster
           command: |
@@ -191,8 +192,15 @@ jobs:
           command: |
             kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0
       - run:
-          name: Esperar a que el puerto esté disponible
-          command: sleep 20
+          name: Esperar a que ArgoCD esté accesible por port-forward
+          command: |
+            for i in {1..10}; do
+              echo "Esperando conexión en el puerto 8080..."
+              nc -zv 127.0.0.1 8080 && break || sleep 5
+            done
+      #- run:
+      #    name: Esperar a que el puerto esté disponible
+      #    command: sleep 20
       - run:
           name: Esperar a que el servidor ArgoCD esté listo
           command: |
