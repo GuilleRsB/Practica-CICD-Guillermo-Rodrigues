@@ -211,12 +211,6 @@ jobs:
             for i in {1..10}; do
               curl -s -k https://localhost:8080 && break || sleep 10
             done
-      #- run:
-      #    name: Esperar a que el puerto esté disponible
-      #    command: sleep 15
-      #- run:
-      #    name: Esperar ingreso
-      #    command: sleep 20
       - run:
           name: Login y sincronizar
           command: |
