@@ -92,7 +92,13 @@ jobs:
       - run:
           name: Ejecutar SonarScanner
           command: |
-            sonar-scanner               -Dsonar.projectKey=GuilleRsB_Practica-CICD-Guillermo-Rodrigues               -Dsonar.sources=.               -Dsonar.host.url=$SONAR_HOST_URL               -Dsonar.login=$SONAR_LOGIN               -Dsonar.organization=guillersb               -Dsonar.python.coverage.reportPaths=coverage.xml
+            sonar-scanner \
+              -Dsonar.projectKey=GuilleRsB_Practica-CICD-Guillermo-Rodrigues \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.login=$SONAR_LOGIN \
+              -Dsonar.organization=guillersb \
+              -Dsonar.python.coverage.reportPaths=coverage.xml
 
   artifact:
     executor: docker-executor
@@ -121,8 +127,7 @@ jobs:
             curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 && chmod +x argocd && sudo mv argocd /usr/local/bin/argocd
       - run:
           name: Crear clúster Kind
-          command: |
-            kind create cluster --name dias-vividos-cluster --config kind-config.yaml
+          command: kind create cluster --name dias-vividos-cluster --config kind-config.yaml
       - run:
           name: Exportar KUBECONFIG
           command: |
@@ -132,42 +137,6 @@ jobs:
           name: Esperar clúster
           command: |
             for i in {1..20}; do kubectl cluster-info && break || sleep 10; done
-      #- run:
-      #    name: Instalar Ingress Controller
-      #    command: |
-      #      kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/kind/deploy.yaml
-      #        echo "Esperando a que los pods estén listos..."
-      #        for i in {1..30}; do
-      #          READY=$(kubectl get pods -n ingress-nginx -o json | jq -r '.items[] | select(.status.phase=="Running") | .metadata.name' | wc -l)
-      #          TOTAL=$(kubectl get pods -n ingress-nginx --no-headers | wc -l)
-      #          echo "Listos: $READY / $TOTAL"
-      #          if [ "$READY" -eq "$TOTAL" ]; then break; fi
-      #          sleep 10
-      #        done
-      #- run:
-      #    name: Esperar a que el Ingress Controller esté disponible
-      #    command: |
-      #      kubectl wait --namespace ingress-nginx \
-      #        --for=condition=ready pod \
-      #        --selector=app.kubernetes.io/component=controller \
-      #        --timeout=180s
-      #- run:
-      #    name: ⚠️ Eliminar webhook temporalmente para evitar errores
-      #    command: |
-      #      echo "Eliminando el webhook para evitar fallo en apply de Ingress..."
-      #      kubectl delete validatingwebhookconfiguration ingress-nginx-admission || true
-      #- run:
-      #    name: Esperar a que el webhook de Ingress esté listo
-      #    command: |
-      #      echo "Esperando al webhook admission controller de Ingress..."
-      #      kubectl wait --namespace ingress-nginx \
-      #        --for=condition=available deployment/ingress-nginx-controller \
-      #        --timeout=180s
-      #- run:
-      #    name: Verificar endpoint de webhook
-      #    command: |
-      #      kubectl get svc -n ingress-nginx
-      #      kubectl get endpoints ingress-nginx-controller-admission -n ingress-nginx
       - run:
           name: Instalar ArgoCD
           command: |
@@ -177,44 +146,28 @@ jobs:
       - run:
           name: Aplicar manifiestos
           command: |
-            kubectl apply -f .circleci/argocd-ingress.yaml
             kubectl apply -f .circleci/application.yaml
       - run:
-          name: Añadir dominio a /etc/hosts
+          name: Esperar a que el pod argocd-server esté listo
           command: |
-            echo "127.0.0.1 argocd.local" | sudo tee -a /etc/hosts
-      - run:
-          name: Esperar a que ArgoCD esté accesible
-          command: sleep 20
+            kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=180s
       - run:
           name: Habilitar port-forward a ArgoCD
           background: true
           command: |
-            kubectl port-forward svc/argocd-server -n argocd 8080:443 --address 0.0.0.0
+            nohup kubectl port-forward svc/argocd-server -n argocd 8080:80 --address 127.0.0.1 > /tmp/portforward.log 2>&1 &
       - run:
-          name: Esperar que el puerto esté disponible
-          command: sleep 20
-      - run:
-          name: Esperar a que ArgoCD esté accesible por port-forward
+          name: Esperar conexión en el puerto 8080
           command: |
-            for i in {1..10}; do
-              echo "Esperando conexión en el puerto 8080..."
-              nc -zv 127.0.0.1 8080 && break || sleep 5
-            done
-      - run:
-          name: Esperar a que el servidor ArgoCD esté listo
-          command: |
-            kubectl rollout status deployment argocd-server -n argocd --timeout=120s
-      - run:
-          name: Verificar conexión a ArgoCD
-          command: |
-            for i in {1..10}; do
-              curl -s -k https://localhost:8080 && break || sleep 10
-            done
+            for i in {1..10}; do nc -zv 127.0.0.1 8080 && break || sleep 5; done
       - run:
           name: Login y sincronizar
           command: |
-            argocd login localhost:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+            for i in {1..5}; do
+              argocd login localhost:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure && break
+              echo "Reintentando login..."
+              sleep 5
+            done
             argocd app sync dias-vividos-cli
             argocd app get dias-vividos-cli
       - run:
