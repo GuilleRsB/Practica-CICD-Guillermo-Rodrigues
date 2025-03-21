@@ -1,9 +1,6 @@
 version: 2.1
 
 executors:
-#  argocd-executor:
-#    docker:
-#    - image: bitnami/argo-cd:latest
   docker-executor:
     docker:
       - image: circleci/python:3.8
@@ -15,10 +12,6 @@ executors:
       - image: sonarsource/sonar-scanner-cli:latest
 
 jobs:
-  # --------------------------
-  # Job: build
-  # Construcción de la imagen Docker.
-  # --------------------------
   build:
     executor: docker-executor
     steps:
@@ -30,15 +23,7 @@ jobs:
       - run:
           name: Construir imagen Docker
           command: docker build -t dias-vividos-cli .
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
 
-  # --------------------------
-  # Job: test
-  # Ejecución de pruebas unitarias y cobertura de código.
-  # --------------------------
   test:
     executor: docker-executor
     steps:
@@ -50,15 +35,11 @@ jobs:
             pip install pytest pytest-cov
       - run:
           name: Ejecutar tests con cobertura
-          command: pytest --cov=. --cov-report xml
+          command: pytest --cov=app --cov-report=xml
       - store_artifacts:
           path: coverage.xml
           destination: coverage
 
-  # --------------------------
-  # Job: lint
-  # Análisis de calidad de código con Flake8.
-  # --------------------------
   lint:
     executor: docker-executor
     steps:
@@ -70,10 +51,6 @@ jobs:
           name: Ejecutar lint
           command: flake8 .
 
-  # --------------------------
-  # Job: static_analysis
-  # Análisis estático de seguridad con Bandit.
-  # --------------------------
   static_analysis:
     executor: docker-executor
     steps:
@@ -85,10 +62,6 @@ jobs:
           name: Ejecutar análisis estático
           command: bandit -r .
 
-  # --------------------------
-  # Job: vulnerability_scan
-  # Análisis de vulnerabilidades con Snyk.
-  # --------------------------
   vulnerability_scan:
     executor: snyk-executor
     steps:
@@ -98,27 +71,15 @@ jobs:
           command: |
             sudo apt-get update && sudo apt-get install -y nodejs npm
       - run:
-          name: Instalar pip y dependencias
-          command: |
-            sudo apt-get update && sudo apt-get install -y python3-pip
-            pip install -r requirements.txt
-      - run:
           name: Instalar Snyk CLI
           command: sudo npm install -g snyk
       - run:
-          name: Autenticar con Snyk
+          name: Autenticarse con Snyk
           command: snyk auth $SNYK_TOKEN
       - run:
-          name: Ejecutar análisis de vulnerabilidades con Snyk
+          name: Ejecutar análisis de vulnerabilidades
           command: snyk test --all-projects
-      - run:
-          name: Aplicar correcciones automáticas con Snyk
-          command: snyk fix || echo "No se pudieron aplicar correcciones automáticamente"
 
-  # --------------------------
-  # Job: sonar_scan
-  # Análisis de código con SonarScanner en SonarCloud.
-  # --------------------------
   sonar_scan:
     executor: sonar-executor
     steps:
@@ -131,176 +92,67 @@ jobs:
               -Dsonar.sources=. \
               -Dsonar.host.url=$SONAR_HOST_URL \
               -Dsonar.login=$SONAR_LOGIN \
-              -Dsonar.organization=guillersb
+              -Dsonar.organization=guillersb \
+              -Dsonar.python.coverage.reportPaths=coverage.xml
 
-  # --------------------------
-  # Job: artifact
-  # Construcción y publicación de la imagen Docker en Docker Hub.
-  # --------------------------
   artifact:
     executor: docker-executor
     steps:
       - checkout
       - setup_remote_docker
       - run:
-          name: Autenticarse en Docker Hub
+          name: Login Docker Hub
           command: echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
       - run:
-          name: Construir y publicar imagen Docker
+          name: Publicar imagen Docker
           command: |
             docker build -t dias-vividos-cli .
             docker tag dias-vividos-cli $DOCKERHUB_USERNAME/dias-vividos-cli:latest
             docker push $DOCKERHUB_USERNAME/dias-vividos-cli:latest
-            docker save dias-vividos-cli > dias-vividos-cli.tar
-      - store_artifacts:
-          path: dias-vividos-cli.tar
-          destination: artifact
 
-  # --------------------------
-  # Job: deploy
-  # Despliegue en Kubernetes con ArgoCD.
-  # --------------------------
   deploy:
-    executor: docker-executor
+    machine: true
     steps:
       - checkout
-      - setup_remote_docker
       - run:
-          name: Verificar Docker
+          name: Instalar kubectl, kind y argocd
           command: |
-            docker --version || echo "Docker no está disponible"
-            docker info || echo "No se pudo acceder a Docker"
+            curl -Lo kubectl https://dl.k8s.io/release/v1.24.0/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+            curl -Lo kind https://kind.sigs.k8s.io/dl/v0.14.0/kind-linux-amd64 && chmod +x kind && sudo mv kind /usr/local/bin/kind
+            curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 && chmod +x argocd && sudo mv argocd /usr/local/bin/argocd
       - run:
-          name: Instalar dependencias (curl, bash, kubectl)
+          name: Crear clúster Kind
           command: |
-            sudo apt-get update && sudo apt-get install -y curl bash
+            kind create cluster --name dias-vividos-cluster
       - run:
-          name: Instalar kubectl
+          name: Esperar clúster
           command: |
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            chmod +x kubectl
-            sudo mv kubectl /usr/local/bin/
-      - run:
-          name: Crear clúster Kubernetes con Kind
-          command: |
-            #sudo apt-get install -y ca-certificates curl gnupg lsb-release
-            #sudo mkdir -p /etc/apt/keyrings
-            #curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-            #echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-            curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.14.0/kind-linux-amd64
-            chmod +x ./kind
-            sudo mv ./kind /usr/local/bin/kind
-      - run:
-          name: Crear clúster Kind y configurar kubeconfig
-          command: |
-            kind create cluster --name dias-vividos-cluster --kubeconfig kind-kubeconfig.yaml
-            mkdir -p $HOME/.kube
-            cp kind-kubeconfig.yaml $HOME/.kube/config
-            export KUBECONFIG=$HOME/.kube/config
-      - run:
-          name: Esperar a que el clúster Kind esté listo
-          command: |
-            echo "Esperando a que el clúster Kind esté accesible..."
-            for i in {1..20}; do
-              kubectl cluster-info && break || sleep 10
-            done
-      - run:
-          name: Verificar que Kind responde
-          command: |
-            export KUBECONFIG=$HOME/.kube/config
-            kubectl cluster-info
-            kubectl get nodes
-      - run:
-          name: Usar contexto de Kind
-          command: |
-            export KUBECONFIG=$HOME/.kube/config
-            kubectl config use-context kind-dias-vividos-cluster
-      - run:
-          name: Información del clúster
-          command: |
-            kubectl cluster-info dump
+            for i in {1..20}; do kubectl cluster-info && break || sleep 10; done
       - run:
           name: Instalar ArgoCD
           command: |
-            kubectl create namespace argocd
+            kubectl create namespace argocd || true
             kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-            sleep 60  # Esperar a que ArgoCD levante
+            sleep 60
       - run:
-          name: Instalar ArgoCD CLI
+          name: Aplicar manifiestos
           command: |
-            curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-            chmod +x argocd
-            sudo mv argocd /usr/local/bin/argocd
+            kubectl apply -f .circleci/argocd-ingress.yaml
+            kubectl apply -f .circleci/application.yaml
       - run:
-          name: Aplicar manifiestos de ArgoCD
-          command: |
-            kubectl apply -n argocd -f .circleci/argocd-deployment.yaml
-            kubectl apply -n argocd -f .circleci/argocd-service.yaml
-            kubectl apply -n argocd -f .circleci/argocd-ingress.yaml
-            kubectl apply -f .circleci/application.yaml -n argocd  
-      - run:
-          name: Esperar a que ArgoCD esté disponible
-          command: sleep 30
-      - run:
-          name: Añadir dominio argocd.local a /etc/hosts
+          name: Añadir dominio a /etc/hosts
           command: |
             echo "127.0.0.1 argocd.local" | sudo tee -a /etc/hosts
-            cat /etc/hosts
       - run:
-          name: Crear aplicación si no existe
+          name: Esperar ingreso
+          command: sleep 20
+      - run:
+          name: Login y sincronizar
           command: |
-            argocd app create dias-vividos-cli \
-              --repo https://github.com/GuilleRsB/Practica-CICD-Guillermo-Rodrigues.git \
-              --path .circleci \
-              --dest-server https://kubernetes.default.svc \
-              --dest-namespace default || echo "Ya existe"
-      - run:
-          name: Port forward a ArgoCD
-          background: true
-          command: |
-            kubectl port-forward svc/argocd-server -n argocd 8080:443
-      - run:
-          name: Esperar a que el puerto esté listo
-          command: sleep 10
-      - run:
-          name: Login en ArgoCD
-          command: |
-            argocd login 127.0.0.1:8080 --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
-      # - run:
-      #    name: Habilitar port-forward a ArgoCD
-      #    background: true
-      #    command: |
-      #      kubectl port-forward svc/argocd-server -n argocd 8080:80
-      #- run:
-      #    name: Esperar a que el puerto esté disponible
-      #    command: sleep 10
-      #- run:
-      #    name: Verificar conectividad al servidor de ArgoCD
-      #    command: curl -k https://127.0.0.1:8080 || echo "No se pudo conectar a 127.0.0.1:8080"
-      #- run:
-      #    name: Autenticarse en ArgoCD
-      #    command: |
-      #     echo "Esperando a que ArgoCD esté listo..."
-      #      kubectl wait --for=condition=available --timeout=120s deployment/argocd-server -n argocd
-      #      argocd login argocd.local --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
-      - run:
-              name: Sincronizar aplicación
-              command: argocd app sync dias-vividos-cli
-      - run:
-          name: Verificar estado de la app
-          command: argocd app get dias-vividos-cli
-      #- run:
-      #    name: Habilitar port-forward para ArgoCD
-      #    background: true
-      #    command: kubectl port-forward svc/argocd-server -n argocd 52094:80 &
-      #- run:
-      #    name: Esperar a que el puerto esté disponible
-      #    command: sleep 30 # Esperar 5 segundos antes de intentar conectarse
-      #- run:
-      #    name: Verificar conectividad al servidor de ArgoCD
-      #    command: |
-      #      kubectl get all --namespace argocd
-      #      curl -k https://127.0.0.1:52094 || echo "No se pudo conectar a 127.0.0.1:52094"
+            argocd login argocd.local --username $ARGOCD_USERNAME --password $ARGOCD_PASSWORD --insecure
+            argocd app sync dias-vividos-cli
+            argocd app get dias-vividos-cli
+
 workflows:
   version: 2
   build_test_deploy:
@@ -320,12 +172,8 @@ workflows:
             - build
       - sonar_scan:
           requires:
-            - build
+            - test
       - artifact:
-          filters:
-            branches:
-              only: 
-                - main
           requires:
             - test
             - lint
@@ -333,9 +181,9 @@ workflows:
             - sonar_scan
             - vulnerability_scan
       - deploy:
+          requires:
+            - artifact
           filters:
             branches:
               only:
                 - main
-          requires:
-            - artifact
