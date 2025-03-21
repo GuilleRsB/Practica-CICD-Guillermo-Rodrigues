@@ -161,7 +161,6 @@ jobs:
   # Despliegue en Kubernetes con ArgoCD.
   # --------------------------
   deploy:
-    machine: true
     executor: docker-executor
     steps:
       - checkout
