@@ -127,30 +127,30 @@ jobs:
           name: Esperar clúster
           command: |
             for i in {1..20}; do kubectl cluster-info && break || sleep 10; done
-      - run:
-          name: Instalar Ingress Controller
-          command: |
-            kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/kind/deploy.yaml
-              echo "Esperando a que los pods estén listos..."
-              for i in {1..30}; do
-                READY=$(kubectl get pods -n ingress-nginx -o json | jq -r '.items[] | select(.status.phase=="Running") | .metadata.name' | wc -l)
-                TOTAL=$(kubectl get pods -n ingress-nginx --no-headers | wc -l)
-                echo "Listos: $READY / $TOTAL"
-                if [ "$READY" -eq "$TOTAL" ]; then break; fi
-                sleep 10
-              done
-      - run:
-          name: Esperar a que el Ingress Controller esté disponible
-          command: |
-            kubectl wait --namespace ingress-nginx \
-              --for=condition=ready pod \
-              --selector=app.kubernetes.io/component=controller \
-              --timeout=180s
-      - run:
-          name: ⚠️ Eliminar webhook temporalmente para evitar errores
-          command: |
-            echo "Eliminando el webhook para evitar fallo en apply de Ingress..."
-            kubectl delete validatingwebhookconfiguration ingress-nginx-admission || true
+      #- run:
+      #    name: Instalar Ingress Controller
+      #    command: |
+      #      kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/kind/deploy.yaml
+      #        echo "Esperando a que los pods estén listos..."
+      #        for i in {1..30}; do
+      #          READY=$(kubectl get pods -n ingress-nginx -o json | jq -r '.items[] | select(.status.phase=="Running") | .metadata.name' | wc -l)
+      #          TOTAL=$(kubectl get pods -n ingress-nginx --no-headers | wc -l)
+      #          echo "Listos: $READY / $TOTAL"
+      #          if [ "$READY" -eq "$TOTAL" ]; then break; fi
+      #          sleep 10
+      #        done
+      #- run:
+      #    name: Esperar a que el Ingress Controller esté disponible
+      #    command: |
+      #      kubectl wait --namespace ingress-nginx \
+      #        --for=condition=ready pod \
+      #        --selector=app.kubernetes.io/component=controller \
+      #        --timeout=180s
+      #- run:
+      #    name: ⚠️ Eliminar webhook temporalmente para evitar errores
+      #    command: |
+      #      echo "Eliminando el webhook para evitar fallo en apply de Ingress..."
+      #      kubectl delete validatingwebhookconfiguration ingress-nginx-admission || true
       #- run:
       #    name: Esperar a que el webhook de Ingress esté listo
       #    command: |
@@ -178,17 +178,17 @@ jobs:
           name: Añadir dominio a /etc/hosts
           command: |
             echo "127.0.0.1 argocd.local" | sudo tee -a /etc/hosts
-      #- run:
-      #    name: Esperar a que ArgoCD esté accesible
-      #    command: sleep 20
-      #- run:
-      #    name: Habilitar port-forward a ArgoCD
-      #    background: true
-      #    command: |
-      #      kubectl port-forward svc/argocd-server -n argocd 8080:8080
-      #- run:
-      #    name: Esperar a que el puerto esté disponible
-      #    command: sleep 20
+      - run:
+          name: Esperar a que ArgoCD esté accesible
+          command: sleep 20
+      - run:
+          name: Habilitar port-forward a ArgoCD
+          background: true
+          command: |
+            kubectl port-forward svc/argocd-server -n argocd 8080:8080
+      - run:
+          name: Esperar a que el puerto esté disponible
+          command: sleep 20
       - run:
           name: Esperar a que el servidor ArgoCD esté listo
           command: |
