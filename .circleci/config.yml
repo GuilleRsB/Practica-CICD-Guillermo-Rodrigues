@@ -223,8 +223,8 @@ jobs:
           command: |
             kubectl apply -n argocd -f .circleci/argocd-deployment.yaml
             kubectl apply -n argocd -f .circleci/argocd-service.yaml
-            kubectl apply -f .circleci/application.yaml -n argocd
             kubectl apply -n argocd -f .circleci/argocd-ingress.yaml
+            kubectl apply -f .circleci/application.yaml -n argocd  
       - run:
           name: Esperar a que ArgoCD esté disponible
           command: sleep 30
