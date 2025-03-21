@@ -90,6 +90,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Verificar archivo coverage.xml
+          command: ls -l coverage.xml
+      - run:
           name: Ejecutar SonarScanner
           command: |
             sonar-scanner \
