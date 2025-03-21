@@ -1,5 +1,5 @@
-# Usa la imagen base de Python 3.8 slim
-FROM python:3.8-slim
+# Usa la imagen base de Python 3.8 slim cambiada a alpine por tener menos vulnerabilidades
+FROM python:3.14-rc-alpine3.21
 
 # Establece el directorio de trabajo
 WORKDIR /app
