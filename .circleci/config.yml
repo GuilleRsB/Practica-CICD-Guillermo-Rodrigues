@@ -143,6 +143,14 @@ jobs:
           command: |
             echo "127.0.0.1 argocd.local" | sudo tee -a /etc/hosts
       - run:
+          name: Habilitar port-forward a ArgoCD
+          background: true
+          command: |
+            kubectl port-forward svc/argocd-server -n argocd 8080:443
+      - run:
+          name: Esperar a que el puerto esté disponible
+          command: sleep 15
+      - run:
           name: Esperar ingreso
           command: sleep 20
       - run:
