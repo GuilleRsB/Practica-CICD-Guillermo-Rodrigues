@@ -198,9 +198,6 @@ jobs:
               echo "Esperando conexión en el puerto 8080..."
               nc -zv 127.0.0.1 8080 && break || sleep 5
             done
-      #- run:
-      #    name: Esperar a que el puerto esté disponible
-      #    command: sleep 20
       - run:
           name: Esperar a que el servidor ArgoCD esté listo
           command: |
