@@ -1,11 +1,18 @@
 from flask import Flask, request, render_template_string
 
+
 app = Flask(__name__)
 
 
 def dias_vividos(edad: int) -> int:
     """
     Calcula la cantidad de días vividos, asumiendo 365 días por año.
+
+    Args:
+        edad (int): La edad en años.
+
+    Returns:
+        int: El número aproximado de días vividos.
     """
     return edad * 365
 
@@ -50,5 +57,5 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000) # nosec
-
+    # Permite a Kubernetes enrutar el tráfico: escucha en todas las interfaces.
+    app.run(host="0.0.0.0", port=5000)  # nosec
