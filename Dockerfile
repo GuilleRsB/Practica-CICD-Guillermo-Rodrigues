@@ -2,7 +2,7 @@
 FROM python:3.14-rc-alpine3.21
 
 # Establece el directorio de trabajo
-WORKDIR /app
+WORKDIR app.py /app/
 
 # Copia los archivos de requerimientos y luego instálalos
 COPY requirements.txt .

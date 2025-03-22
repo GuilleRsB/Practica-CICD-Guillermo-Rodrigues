@@ -1,2 +1,19 @@
 argocd.exe
 repo.sh
+# Archivos de configuración local
+*.env
+*.local
+# Entorno virtual
+venv/
+.env/
+# Archivos generados por pruebas
+coverage.xml
+*.coverage
+*.coveragerc
+nosetests.xml
+test-reports/
+# Archivos de cache de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
