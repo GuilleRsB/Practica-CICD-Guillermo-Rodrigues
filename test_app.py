@@ -1,5 +1,5 @@
 import unittest
-from app import app, dias_vividos
+from app.app import app, dias_vividos
 
 
 class TestDiasVividos(unittest.TestCase):
