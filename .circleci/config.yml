@@ -33,6 +33,7 @@ jobs:
           command: |
             pip install -r requirements.txt
             pip install pytest pytest-cov
+            pip install Flask-WTF
       - run:
           name: Ejecutar tests con cobertura
           command: pytest --cov=app --cov-report=xml
