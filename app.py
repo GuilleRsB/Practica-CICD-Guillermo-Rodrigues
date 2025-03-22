@@ -58,8 +58,8 @@ def index():
 
 
 if __name__ == "__main__":
-    # Escucha en todas las interfaces solo si estás en producción.
-    # Este uso de 0.0.0.0 está controlado por entorno y es seguro.  # nosec
+    # Usar 0.0.0.0 solo en producción (ej: Docker/Kubernetes).
+    # nosec: el uso está controlado con variable de entorno FLASK_ENV
     host = (
         "0.0.0.0" # nosec: solo se expone en producción controlada por FLASK_ENV
         if os.getenv("FLASK_ENV") == "production"
