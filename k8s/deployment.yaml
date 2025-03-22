@@ -15,8 +15,16 @@ spec:
       labels:
         app: dias-vividos-cli
     spec:
+      automountServiceAccountToken: false   # 🛡️ Seguridad
       containers:
       - name: dias-vividos-cli
         image: guillermors28/dias-vividos-cli:latest
         ports:
         - containerPort: 5000
+        resources:                          # 📦 Control de recursos
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
