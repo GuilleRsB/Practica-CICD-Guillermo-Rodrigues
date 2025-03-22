@@ -150,7 +150,7 @@ jobs:
       - run:
           name: Aplicar manifiestos
           command: |
-            kubectl apply -f .circleci/application.yaml
+            kubectl apply -f application.yaml
       - run:
           name: Esperar a que el pod argocd-server esté listo
           command: |
