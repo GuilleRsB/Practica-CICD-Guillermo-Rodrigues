@@ -1,5 +1,5 @@
 import unittest
-from app.app import app, dias_vividos
+from app import app, dias_vividos
 
 
 class TestDiasVividos(unittest.TestCase):
@@ -21,7 +21,8 @@ class TestDiasVividos(unittest.TestCase):
 
     def test_index_post_valid(self):
         response = self.client.post(
-            '/', data={'nombre': 'Guillermo', 'edad': '25'}
+            '/',
+            data={'nombre': 'Guillermo', 'edad': '25'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn(
@@ -31,10 +32,15 @@ class TestDiasVividos(unittest.TestCase):
 
     def test_index_post_invalid(self):
         response = self.client.post(
-            '/', data={'nombre': 'Guillermo', 'edad': 'abc'}
+            '/',
+            data={'nombre': 'Guillermo', 'edad': 'abc'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn(
             b'Error: La edad debe ser un n\xc3\xbamero entero.',
             response.data
         )
+
+
+if __name__ == '__main__':
+    unittest.main()
