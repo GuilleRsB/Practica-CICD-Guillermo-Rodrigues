@@ -1,0 +1,8 @@
+pytest>=7.4.4
+pytest-cov>=4.1.0
+flake8>=6.1.0
+bandit>=1.7.7
+setuptools>=70.0.0
+Flask==3.0.0
+zipp>=3.19.1
+flask-wtf>=0.15.1
