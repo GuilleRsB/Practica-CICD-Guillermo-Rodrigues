@@ -4,19 +4,23 @@ from wtforms import StringField, IntegerField, SubmitField
 from wtforms.validators import DataRequired
 import os
 
+
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Necesario para CSRF
+app.secret_key = os.getenv("SECRET_KEY", os.urandom(24))
+
 
 class DatosForm(FlaskForm):
     nombre = StringField("Nombre", validators=[DataRequired()])
     edad = IntegerField("Edad", validators=[DataRequired()])
     submit = SubmitField("Calcular")
 
+
 def dias_vividos(edad: int) -> int:
     """
     Calcula la cantidad de días vividos, asumiendo 365 días por año.
     """
     return edad * 365
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -54,5 +58,7 @@ def index():
         resultado=resultado,
     )
 
+
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=5000)
+    host = "0.0.0.0" if os.getenv("FLASK_ENV") == "production" else "127.0.0.1"
+    app.run(host=host, port=5000)
