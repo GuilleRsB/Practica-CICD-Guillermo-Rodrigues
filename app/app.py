@@ -8,6 +8,9 @@ import os
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", os.urandom(24))
 
+# Desactiva CSRF solo si estamos en modo testing (para que los tests pasen sin errores)
+app.config["WTF_CSRF_ENABLED"] = not app.testing
+
 
 class DatosForm(FlaskForm):
     nombre = StringField("Nombre", validators=[DataRequired()])
@@ -32,7 +35,7 @@ def index():
         dias = dias_vividos(edad)
         resultado = f"{nombre}, has vivido aproximadamente {dias} días."
     elif request.method == "POST":
-        resultado = "Error: Por favor completa todos los campos correctamente."
+        resultado = "Error: La edad debe ser un número entero."
 
     return render_template_string(
         """
@@ -59,6 +62,7 @@ def index():
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # En entorno de producción (Docker, Kubernetes) exponemos en 0.0.0.0
     host = "0.0.0.0" if os.getenv("FLASK_ENV") == "production" else "127.0.0.1"
     app.run(host=host, port=5000)
