@@ -61,7 +61,7 @@ if __name__ == "__main__":
     # Usar 0.0.0.0 solo en producción (ej: Docker/Kubernetes).
     # Bandit nosec: exposición está controlada con FLASK_ENV
     host = (
-        "0.0.0.0" # nosec
+        "0.0.0.0"  # nosec
         if os.getenv("FLASK_ENV") == "production"
         else "127.0.0.1"
     )
