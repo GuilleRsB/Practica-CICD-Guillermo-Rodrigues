@@ -59,7 +59,7 @@ def index():
 
 if __name__ == "__main__":
     # Usar 0.0.0.0 solo en producción (ej: Docker/Kubernetes).
-    # nosec: el uso está controlado con variable de entorno FLASK_ENV
+    # Bandit nosec: exposición está controlada con FLASK_ENV
     host = (
         "0.0.0.0" # nosec: solo se expone en producción controlada por FLASK_ENV
         if os.getenv("FLASK_ENV") == "production"
