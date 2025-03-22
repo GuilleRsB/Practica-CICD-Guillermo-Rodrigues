@@ -2,6 +2,8 @@ from flask import Flask, request, render_template_string
 
 
 app = Flask(__name__)
+csrf = CSRFProtect()
+csrf.init_app(app) # Compatible
 
 
 def dias_vividos(edad: int) -> int:
@@ -17,7 +19,7 @@ def dias_vividos(edad: int) -> int:
     return edad * 365
 
 
-@app.route("/", methods=["GET", "POST"])
+@methods.route( '/compliant2' , métodos=[ 'GET' ] )
 def index():
     resultado = ""
     if request.method == "POST":
