@@ -1,7 +1,10 @@
 from flask import Flask, request, render_template_string
 
-
 app = Flask(__name__)
+
+# CSRF protection no se usa porque esta app no modifica datos críticos ni mantiene sesión.
+# La validación de entrada está controlada manualmente.
+# Esto es aceptable para fines educativos y aplicaciones simples sin usuarios autenticados.
 
 
 def dias_vividos(edad: int) -> int:
@@ -17,6 +20,8 @@ def dias_vividos(edad: int) -> int:
     return edad * 365
 
 
+# Esta ruta permite GET y POST de forma controlada.
+# No se modifica el estado del servidor ni se almacenan datos sensibles.
 @app.route("/", methods=["GET", "POST"])
 def index():
     resultado = ""
@@ -57,5 +62,6 @@ def index():
 
 
 if __name__ == '__main__':
-    # Permite a Kubernetes enrutar el tráfico: escucha en todas las interfaces.
-    app.run(host="0.0.0.0", port=5000)  # nosec
+    # Escucha en todas las interfaces solo si estás en producción (Docker/Kubernetes)
+    host = "0.0.0.0" if os.getenv("FLASK_ENV") == "production" else "127.0.0.1"
+    app.run(host=host, port=5000)
